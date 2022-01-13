@@ -130,7 +130,7 @@ if make_mt:
         st.dataframe(final_output)
         csv = convert_df(final_output)
         makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
-        with open('st_version/announce_table.pdf', 'rb') as pdf_file:
+        with open('announce_table.pdf', 'rb') as pdf_file:
             PDFbyte = pdf_file.read()
         st.write("csv為重要檔案，請妥善保存!")
         st.download_button(
