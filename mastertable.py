@@ -16,6 +16,7 @@ width, height = A4
 # uncomment the line below when run in local
 # os.chdir("/Users/YLC/SynologyDrive/Code/Code_for_Exam/st_version")
 
+@st.cache
 def master_table(dataframe, seat, ver_num):
     dataframe['ID'] = dataframe['ID'].apply(str)
     seat.index.name = 'Seat_index'
@@ -110,7 +111,7 @@ uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx")
 if uploaded_file is not None:
     # Can be used wherever a "file-like" object is accepted:
     roll_list = pd.read_excel(uploaded_file)
-    st.dataframe(roll_list, 300)
+    # st.dataframe(roll_list, 300)
 st.sidebar.write("---")
 st.sidebar.subheader("3. 選擇試場座位與試卷版本")
 choice = st.sidebar.radio("座位安排", ('致德堂306人(坐二排空一排)', '致德堂250人(坐一排空一排)'))
@@ -121,26 +122,21 @@ else:
 
 version = st.sidebar.slider("考卷版本", 1, 10, 1)
 
-make_mt = st.button("產生座位")
-if make_mt:
-    if uploaded_file is None:
-        "**還沒上傳學生名冊!**"
-    else:
-        final_output = master_table(roll_list, SEAT, version)
-        st.dataframe(final_output)
-        csv = convert_df(final_output)
-        makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
-        with open('announce_table.pdf', 'rb') as pdf_file:
-            PDFbyte = pdf_file.read()
-        st.write("csv為重要檔案，請妥善保存!")
-        st.download_button(
-            label="Download data as CSV",
-            data=csv,
-            file_name="masterTable.csv",
-            mime='text/csv'
-        )
-        st.write("PDF印出至少三份張貼於試場外")
-        st.download_button('Download PDF', data=PDFbyte, file_name="st_version/announce_table.pdf", mime="application/octet-stream")
-# #
-# # if __name__ == "__main__":
-#     makeAnnouTable(columnize(master_table(), 41, 2, heading=1))
+if uploaded_file is None:
+    "**還沒上傳學生名冊!**"
+else:
+    final_output = master_table(roll_list, SEAT, version)
+    st.dataframe(final_output)
+    csv = convert_df(final_output)
+    makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
+    with open('announce_table.pdf', 'rb') as pdf_file:
+        PDFbyte = pdf_file.read()
+    st.write("csv為重要檔案，請妥善保存!")
+    csv_clicked = st.download_button(
+        label="Download data as CSV",
+        data=csv,
+        file_name="masterTable.csv",
+        mime='text/csv'
+    )
+    st.write("PDF印出至少三份張貼於試場外")
+    st.download_button('Download PDF', data=PDFbyte, file_name="st_version/announce_table.pdf", mime="application/octet-stream")
