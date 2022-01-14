@@ -15,7 +15,7 @@ from PIL import Image
 pdfmetrics.registerFont(TTFont('Microsoft Jhenghei', 'Microsoft Jhenghei.ttf'))
 width, height = A4
 # uncomment the line below when run in local
-os.chdir("/Users/YLC/SynologyDrive/Code/Code_for_Exam")
+# os.chdir("/Users/YLC/SynologyDrive/Code/Code_for_Exam")
 
 @st.cache
 def master_table(dataframe, seat, ver_num):
