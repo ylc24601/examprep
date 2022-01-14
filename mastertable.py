@@ -107,19 +107,18 @@ def create_download_link(val, filename):
 st.title("試務工作流程")
 menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
 choice = st.sidebar.selectbox('Menu', menu)
-
+st.sidebar.write("---")
 if choice == "試場座位":
     st.write("## 製作試場座位表")
     st.sidebar.subheader("1. 考試名稱")
     title = st.sidebar.text_input('顯示於座位公告表之標題', "Biochemistry 1st Exam Seat Table")
-    st.sidebar.write("---")
     st.sidebar.subheader("2. 上傳學生名冊")
     uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx")
     if uploaded_file is not None:
         # Can be used wherever a "file-like" object is accepted:
         roll_list = pd.read_excel(uploaded_file)
         # st.dataframe(roll_list, 300)
-    st.sidebar.write("---")
+
     st.sidebar.subheader("3. 選擇試場座位與試卷版本")
     seat_choice = st.sidebar.radio("座位安排", ('致德堂306人(坐二排空一排)', '致德堂250人(坐一排空一排)'))
     if seat_choice == "致德堂306人(坐二排空一排)":
