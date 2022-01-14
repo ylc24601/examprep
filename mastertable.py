@@ -9,12 +9,13 @@ from reportlab.pdfbase.ttfonts import TTFont
 import streamlit as st
 import os
 import base64
+from PIL import Image
 # ------------------------------------------
 
 pdfmetrics.registerFont(TTFont('Microsoft Jhenghei', 'Microsoft Jhenghei.ttf'))
 width, height = A4
 # uncomment the line below when run in local
-# os.chdir("/Users/YLC/SynologyDrive/Code/Code_for_Exam/st_version")
+# os.chdir("/Users/YLC/SynologyDrive/Code/Code_for_Exam")
 
 @st.cache
 def master_table(dataframe, seat, ver_num):
@@ -102,41 +103,63 @@ def create_download_link(val, filename):
     b64 = base64.b64encode(val)  # val looks like b'...'
     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
 
-st.write("## 製作試場座位表")
-st.sidebar.subheader("1. 考試名稱")
-title = st.sidebar.text_input('顯示於座位公告表之標題', "Biochemistry 1st Exam Seat Table")
-st.sidebar.write("---")
-st.sidebar.subheader("2. 上傳學生名冊")
-uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx")
-if uploaded_file is not None:
-    # Can be used wherever a "file-like" object is accepted:
-    roll_list = pd.read_excel(uploaded_file)
-    # st.dataframe(roll_list, 300)
-st.sidebar.write("---")
-st.sidebar.subheader("3. 選擇試場座位與試卷版本")
-choice = st.sidebar.radio("座位安排", ('致德堂306人(坐二排空一排)', '致德堂250人(坐一排空一排)'))
-if choice == "致德堂306人(坐二排空一排)":
-    SEAT = pd.read_excel("seat_306.xlsx", header=None, names=['Seat'])
-else:
-    SEAT = pd.read_excel("seat_250.xlsx", header=None, names=['Seat'])
 
-version = st.sidebar.slider("考卷版本", 1, 10, 1)
+st.title("試務工作流程")
+menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
+choice = st.sidebar.selectbox('Menu', menu)
 
-if uploaded_file is None:
-    "**還沒上傳學生名冊!**"
-else:
-    final_output = master_table(roll_list, SEAT, version)
-    st.dataframe(final_output)
-    csv = convert_df(final_output)
-    makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
-    with open('announce_table.pdf', 'rb') as pdf_file:
-        PDFbyte = pdf_file.read()
-    st.write("csv為重要檔案，請妥善保存!")
-    csv_clicked = st.download_button(
-        label="Download data as CSV",
-        data=csv,
-        file_name="masterTable.csv",
-        mime='text/csv'
-    )
-    st.write("PDF印出至少三份張貼於試場外")
-    st.download_button('Download PDF', data=PDFbyte, file_name="st_version/announce_table.pdf", mime="application/octet-stream")
+if choice == "試場座位":
+    st.write("## 製作試場座位表")
+    st.sidebar.subheader("1. 考試名稱")
+    title = st.sidebar.text_input('顯示於座位公告表之標題', "Biochemistry 1st Exam Seat Table")
+    st.sidebar.write("---")
+    st.sidebar.subheader("2. 上傳學生名冊")
+    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx")
+    if uploaded_file is not None:
+        # Can be used wherever a "file-like" object is accepted:
+        roll_list = pd.read_excel(uploaded_file)
+        # st.dataframe(roll_list, 300)
+    st.sidebar.write("---")
+    st.sidebar.subheader("3. 選擇試場座位與試卷版本")
+    seat_choice = st.sidebar.radio("座位安排", ('致德堂306人(坐二排空一排)', '致德堂250人(坐一排空一排)'))
+    if seat_choice == "致德堂306人(坐二排空一排)":
+        SEAT = pd.read_excel("seat_306.xlsx", header=None, names=['Seat'])
+    else:
+        SEAT = pd.read_excel("seat_250.xlsx", header=None, names=['Seat'])
+
+    version = st.sidebar.slider("考卷版本", 1, 10, 1)
+
+    if uploaded_file is None:
+        st.empty()
+    else:
+        final_output = master_table(roll_list, SEAT, version)
+        st.dataframe(final_output)
+        csv = convert_df(final_output)
+        makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
+        with open('announce_table.pdf', 'rb') as pdf_file:
+            PDFbyte = pdf_file.read()
+        st.write("csv為重要檔案，請妥善保存!")
+        csv_clicked = st.download_button(
+            label="Download data as CSV",
+            data=csv,
+            file_name="masterTable.csv",
+            mime='text/csv'
+        )
+        st.write("PDF印出至少三份張貼於試場外")
+        st.download_button('Download PDF', data=PDFbyte, file_name="st_version/announce_table.pdf", mime="application/octet-stream")
+if choice == "答案卡":
+    st.write("施工中")
+    image = Image.open("under_construction.gif")
+    st.image(image)
+if choice == "試題卷":
+    st.write("施工中")
+    image = Image.open("under_construction.gif")
+    st.image(image)
+if choice == "匯整正確答案":
+    st.write("施工中")
+    image = Image.open("under_construction.gif")
+    st.image(image)
+if choice == "成績計算":
+    st.write("施工中")
+    image = Image.open("under_construction.gif")
+    st.image(image)
