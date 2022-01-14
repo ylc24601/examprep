@@ -42,7 +42,7 @@ def df2list(df):
 
 @st.cache
 def convert_df(df):
-    return df.to_csv().encode('utf-8')
+    return df.to_csv()
 
 def myFirstPage(canvas, doc):
     canvas.saveState()
