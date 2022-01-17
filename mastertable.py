@@ -165,14 +165,14 @@ if choice == "答案卡":
     st.sidebar.subheader("1. 考試名稱")
     as_title = st.sidebar.text_input('顯示於答案之標題', "Biochem-1")
     st.sidebar.subheader("2. 上傳 masterTable.xlsx")
-    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx")
+    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx")
     st.sidebar.subheader("3.設定列印位置，單位 mm")
     ID_left = st.sidebar.number_input("答案卡左側邊緣至學號左邊界(0)之距離: ", 20.45)
     ID_right = st.sidebar.number_input("答案卡左側邊緣至學號右邊界(9)之距離: ", 60.47)
     ID_top = st.sidebar.number_input("答案卡下緣至學號上邊界之距離: ", 192.58)
     ID_bottom = st.sidebar.number_input("答案卡下緣至學號下邊界之距離:: ", 151.05)
-    if uploaded_file is not None:
-        df_seat = pd.read_excel(uploaded_file)
+    if uploaded_mt is not None:
+        df_seat = pd.read_excel(uploaded_mt)
         st.dataframe(df_seat)
         # ID_LEFT_MARGIN = 20.45
         # ID_RIGHT_MARGIN = 60.47
