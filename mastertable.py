@@ -6,16 +6,18 @@ from reportlab.lib.units import cm, inch
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+from io import BytesIO
 import streamlit as st
 import os
 import base64
 from PIL import Image
+from batch_fill_AS import batchFillAS
+
 # ------------------------------------------
 
 pdfmetrics.registerFont(TTFont('Microsoft Jhenghei', 'Microsoft Jhenghei.ttf'))
 width, height = A4
-# uncomment the line below when run in local
-# os.chdir("/Users/YLC/SynologyDrive/Code/Code_for_Exam")
+
 
 @st.cache
 def master_table(dataframe, seat, ver_num):
@@ -42,7 +44,7 @@ def df2list(df):
 
 @st.cache
 def convert_df(df):
-    return df.to_csv()
+    return df.to_excel(engine='xlsxwriter')
 
 def myFirstPage(canvas, doc):
     canvas.saveState()
@@ -99,16 +101,29 @@ def columnize(data, rows, cols, heading=0):
     return transformed_list
 
 
-def create_download_link(val, filename):
-    b64 = base64.b64encode(val)  # val looks like b'...'
-    return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
+# def create_download_link(val, filename):
+#     b64 = base64.b64encode(val)  # val looks like b'...'
+#     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
+
+def to_excel(df):
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+    df.to_excel(writer, index=False, sheet_name='Sheet1')
+    workbook = writer.book
+    worksheet = writer.sheets['Sheet1']
+    format1 = workbook.add_format({'num_format': '0.00'})
+    worksheet.set_column('A:A', None, format1)
+    writer.save()
+    processed_data = output.getvalue()
+    return processed_data
 
 
-st.title("試務工作流程")
+
 menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
 choice = st.sidebar.selectbox('Menu', menu)
 st.sidebar.write("---")
 if choice == "試場座位":
+    st.title("試務工作流程-步驟一")
     st.write("## 製作試場座位表")
     st.sidebar.subheader("1. 考試名稱")
     title = st.sidebar.text_input('顯示於座位公告表之標題', "Biochemistry 1st Exam Seat Table")
@@ -133,23 +148,43 @@ if choice == "試場座位":
     else:
         final_output = master_table(roll_list, SEAT, version)
         st.dataframe(final_output)
-        csv = convert_df(final_output)
+        mt = to_excel(final_output)
         makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
+
+        st.write("此為重要檔案，請妥善保存!")
+        csv_clicked = st.download_button(
+            label='Download Excel File',
+            data=mt,
+            file_name="masterTable.xlsx")
+        st.write("PDF印出至少三份張貼於試場外")
         with open('announce_table.pdf', 'rb') as pdf_file:
             PDFbyte = pdf_file.read()
-        st.write("csv為重要檔案，請妥善保存!")
-        csv_clicked = st.download_button(
-            label="Download data as CSV",
-            data=csv,
-            file_name="masterTable.csv",
-            mime='text/csv'
-        )
-        st.write("PDF印出至少三份張貼於試場外")
-        st.download_button('Download PDF', data=PDFbyte, file_name="st_version/announce_table.pdf", mime="application/octet-stream")
+        st.download_button('Download PDF', data=PDFbyte, file_name="announce_table.pdf", mime="application/octet-stream")
 if choice == "答案卡":
-    st.write("施工中")
-    image = Image.open("under_construction.gif")
-    st.image(image)
+    st.title("試務工作流程-步驟二")
+    st.sidebar.subheader("1. 考試名稱")
+    as_title = st.sidebar.text_input('顯示於答案之標題', "Biochem-1")
+    st.sidebar.subheader("2. 上傳 masterTable.xlsx")
+    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx")
+    st.sidebar.subheader("3.設定列印位置，單位 mm")
+    ID_left = st.sidebar.number_input("答案卡左側邊緣至學號左邊界(0)之距離: ", 20.45)
+    ID_right = st.sidebar.number_input("答案卡左側邊緣至學號右邊界(9)之距離: ", 60.47)
+    ID_top = st.sidebar.number_input("答案卡下緣至學號上邊界之距離: ", 192.58)
+    ID_bottom = st.sidebar.number_input("答案卡下緣至學號下邊界之距離:: ", 151.05)
+    if uploaded_file is not None:
+        df_seat = pd.read_excel(uploaded_file)
+        st.dataframe(df_seat)
+        # ID_LEFT_MARGIN = 20.45
+        # ID_RIGHT_MARGIN = 60.47
+        # ID_TOP_MARGIN = 192.58
+        # ID_BOTTOM_MARGIN = 151.05
+        batchFillAS(df_seat, "AnswerSheet.pdf", as_title, ID_left, ID_right, ID_top, ID_bottom)
+        with open("AnswerSheet.pdf", 'rb') as pdf_file:
+            PDFbyte = pdf_file.read()
+        st.download_button('Download PDF', data=PDFbyte, file_name="AnswerSheet.pdf", mime="application/octet-stream")
+
+
+
 if choice == "試題卷":
     st.write("施工中")
     image = Image.open("under_construction.gif")
