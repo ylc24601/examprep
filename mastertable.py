@@ -128,7 +128,7 @@ if choice == "試場座位":
     st.sidebar.subheader("1. 考試名稱")
     title = st.sidebar.text_input('顯示於座位公告表之標題', "Biochemistry 1st Exam Seat Table")
     st.sidebar.subheader("2. 上傳學生名冊")
-    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx")
+    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx", key = 1)
     if uploaded_file is not None:
         # Can be used wherever a "file-like" object is accepted:
         roll_list = pd.read_excel(uploaded_file)
@@ -165,7 +165,7 @@ if choice == "答案卡":
     st.sidebar.subheader("1. 考試名稱")
     as_title = st.sidebar.text_input('顯示於答案之標題', "Biochem-1")
     st.sidebar.subheader("2. 上傳 masterTable.xlsx")
-    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx")
+    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
     st.sidebar.subheader("3.設定列印位置，單位 mm")
     ID_left = st.sidebar.number_input("答案卡左側邊緣至學號左邊界(0)之距離: ", 20.45)
     ID_right = st.sidebar.number_input("答案卡左側邊緣至學號右邊界(9)之距離: ", 60.47)
