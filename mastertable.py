@@ -244,7 +244,7 @@ if choice == "試題卷":
             with col1:
                 ID_LEFT = st.number_input("頁面左邊界至學號左緣之距離(mm): ", value=30)
                 ID_HEIGHT = st.number_input("頁面下邊界至學號下緣之距離(mm): ", value=281)
-                page_num_to_trim = st.number_input("刪減PDF檔倒數頁數: ", value=2)
+                page_num_to_trim = st.number_input("刪減PDF檔倒數頁數: ", min_value=0, value=2, step=1)
             with col2:
                 NAME_LEFT = st.number_input("頁面左邊界至姓名左緣之距離(mm): ", value=65)
                 NAME_HEIGHT = st.number_input("頁面下邊界至姓名下緣之距離(mm): ", value=281)
