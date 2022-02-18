@@ -126,6 +126,7 @@ def fillTestSheet(uploaded_file, preview, page_num_to_trim, ID_LEFT, ID_HEIGHT, 
     # create a new PDF with Reportlab
     can = canvas.Canvas(packet, pagesize=A4)
     can.setFont('Microsoft Jhenghei', 12)
+    can.setFillColor("darkblue")
     can.drawString(ID_LEFT * mm, ID_HEIGHT * mm, str(ID))
     can.drawString(NAME_LEFT * mm, NAME_HEIGHT * mm, Name)
     can.drawString(CLASS_LEFT * mm, CLASS_HEIGHT * mm, Class)
@@ -265,7 +266,7 @@ if choice == "試題卷":
                 with col4:
                     SEAT_LEFT = st.number_input("頁面左邊界至座位左緣之距離(mm): ", value=167)
                     SEAT_HEIGHT = st.number_input("頁面下邊界至座位下緣之距離(mm): ", value=287)
-            st.info("Preview功能目前只能使用Firefox")
+            st.info("目前Preview功能僅限使用Firefox")
             if st.button("Preview"):
                 ID, Name, Class, Seat_index, Seat, Version = df_array[0,:]
                 fillTestSheet(uploaded_files[0],True, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
