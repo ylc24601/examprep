@@ -246,51 +246,51 @@ if choice == "試題卷":
         col1, col2, col3 = st.columns(3)
         col1.metric(label="應考人數", value=f"{num_rows}人")
         col2.metric(label="試題版本", value=version_num)
-    if uploaded_files is not None:
+    if uploaded_files and uploaded_mt is not None:
         col3.metric(label="上傳檔案數", value=len(uploaded_files), delta=len(uploaded_files)-version_num)
-    if len(uploaded_files)==version_num:
-        with st.expander("定位參數修改"):
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                ID_LEFT = st.number_input("頁面左邊界至學號左緣之距離(mm): ", value=30)
-                ID_HEIGHT = st.number_input("頁面下邊界至學號下緣之距離(mm): ", value=281)
-                page_num_to_trim = st.number_input("刪減PDF檔倒數頁數: ", min_value=0, value=2, step=1)
-                page_num_to_trim = int(page_num_to_trim)
-            with col2:
-                NAME_LEFT = st.number_input("頁面左邊界至姓名左緣之距離(mm): ", value=65)
-                NAME_HEIGHT = st.number_input("頁面下邊界至姓名下緣之距離(mm): ", value=281)
-            with col3:
-                CLASS_LEFT = st.number_input("頁面左邊界至期班左緣之距離(mm): ", value=105)
-                CLASS_HEIGHT = st.number_input("頁面下邊界至期班下緣之距離(mm): ", value=281)
-            with col4:
-                SEAT_LEFT = st.number_input("頁面左邊界至座位左緣之距離(mm): ", value=167)
-                SEAT_HEIGHT = st.number_input("頁面下邊界至座位下緣之距離(mm): ", value=287)
-        st.info("Preview功能目前只能使用Firefox")
-        if st.button("Preview"):
-            ID, Name, Class, Seat_index, Seat, Version = df_array[0,:]
-            fillTestSheet(uploaded_files[0],True, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
-            displayPDF("preview.pdf")
-        if st.button("Make All Sheets"):
-            progress_bar = st.progress(0)
-            current_progress = 0.0
-            for ID, Name, Class, Seat_index, Seat, Version in df_array:
-                for file in uploaded_files:
-                    if 'Ver_' + str(Version) in file.name:
-                        fillTestSheet(file, False, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
-                        current_progress += (1/(num_rows))
-                        progress_bar.progress(current_progress)
-            shutil.make_archive("archive", 'zip', "./tmp")
-            progress_bar.progress(1.0)
-            st.success("Done!")
-            st.balloons()
-            with open("archive.zip", "rb") as zf:
-                btn = st.download_button(
-                label='Download ZIP',
-                data=zf,
-                file_name="archive.zip",
-                mime="application/zip")
-    else:
-        st.warning("上傳檔案數與試題版本數不符！")
+        if len(uploaded_files)==version_num:
+            with st.expander("定位參數修改"):
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    ID_LEFT = st.number_input("頁面左邊界至學號左緣之距離(mm): ", value=30)
+                    ID_HEIGHT = st.number_input("頁面下邊界至學號下緣之距離(mm): ", value=281)
+                    page_num_to_trim = st.number_input("刪減PDF檔倒數頁數: ", min_value=0, value=2, step=1)
+                    page_num_to_trim = int(page_num_to_trim)
+                with col2:
+                    NAME_LEFT = st.number_input("頁面左邊界至姓名左緣之距離(mm): ", value=65)
+                    NAME_HEIGHT = st.number_input("頁面下邊界至姓名下緣之距離(mm): ", value=281)
+                with col3:
+                    CLASS_LEFT = st.number_input("頁面左邊界至期班左緣之距離(mm): ", value=105)
+                    CLASS_HEIGHT = st.number_input("頁面下邊界至期班下緣之距離(mm): ", value=281)
+                with col4:
+                    SEAT_LEFT = st.number_input("頁面左邊界至座位左緣之距離(mm): ", value=167)
+                    SEAT_HEIGHT = st.number_input("頁面下邊界至座位下緣之距離(mm): ", value=287)
+            st.info("Preview功能目前只能使用Firefox")
+            if st.button("Preview"):
+                ID, Name, Class, Seat_index, Seat, Version = df_array[0,:]
+                fillTestSheet(uploaded_files[0],True, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
+                displayPDF("preview.pdf")
+            if st.button("Make All Sheets"):
+                progress_bar = st.progress(0)
+                current_progress = 0.0
+                for ID, Name, Class, Seat_index, Seat, Version in df_array:
+                    for file in uploaded_files:
+                        if 'Ver_' + str(Version) in file.name:
+                            fillTestSheet(file, False, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
+                            current_progress += (1/(num_rows))
+                            progress_bar.progress(current_progress)
+                shutil.make_archive("archive", 'zip', "./tmp")
+                progress_bar.progress(1.0)
+                st.success("Done!")
+                st.balloons()
+                with open("archive.zip", "rb") as zf:
+                    btn = st.download_button(
+                    label='Download ZIP',
+                    data=zf,
+                    file_name="archive.zip",
+                    mime="application/zip")
+        else:
+            st.warning("上傳檔案數與試題版本數不符！")
 
 if choice == "匯整正確答案":
     st.write("施工中")
