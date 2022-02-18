@@ -227,7 +227,11 @@ if choice == "答案卡":
         batchFillAS(df_seat, "AnswerSheet.pdf", as_title, ID_left, ID_right, ID_top, ID_bottom)
         with open("AnswerSheet.pdf", 'rb') as pdf_file:
             PDFbyte = pdf_file.read()
-        st.download_button('Download PDF', data=PDFbyte, file_name="AnswerSheet.pdf", mime="application/octet-stream")
+        st.download_button(
+        'Download PDF',
+         data=PDFbyte,
+         file_name="AnswerSheet.pdf",
+         mime="application/octet-stream")
 if choice == "試題卷":
     st.sidebar.subheader("1. 上傳 masterTable.xlsx")
     uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
@@ -245,6 +249,7 @@ if choice == "試題卷":
                 ID_LEFT = st.number_input("頁面左邊界至學號左緣之距離(mm): ", value=30)
                 ID_HEIGHT = st.number_input("頁面下邊界至學號下緣之距離(mm): ", value=281)
                 page_num_to_trim = st.number_input("刪減PDF檔倒數頁數: ", min_value=0, value=2, step=1)
+                page_num_to_trim = int(page_num_to_trim)
             with col2:
                 NAME_LEFT = st.number_input("頁面左邊界至姓名左緣之距離(mm): ", value=65)
                 NAME_HEIGHT = st.number_input("頁面下邊界至姓名下緣之距離(mm): ", value=281)
@@ -254,6 +259,7 @@ if choice == "試題卷":
             with col4:
                 SEAT_LEFT = st.number_input("頁面左邊界至座位左緣之距離(mm): ", value=167)
                 SEAT_HEIGHT = st.number_input("頁面下邊界至座位下緣之距離(mm): ", value=287)
+        st.info("Preview功能目前只能使用Firefox")
         if st.button("Preview"):
             ID, Name, Class, Seat_index, Seat, Version = df_array[0,:]
             fillTestSheet(uploaded_files[0],True, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
