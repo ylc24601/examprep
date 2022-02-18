@@ -11,10 +11,12 @@ from reportlab.pdfgen import canvas
 from io import BytesIO
 import streamlit as st
 import os
+import re
 import base64
 from PIL import Image
 from batch_fill_AS import batchFillAS
 from PyPDF2 import PdfFileWriter, PdfFileReader
+from pdfminer.high_level import extract_text
 # ------------------------------------------
 
 pdfmetrics.registerFont(TTFont('Microsoft Jhenghei', 'Microsoft Jhenghei.ttf'))
@@ -167,6 +169,20 @@ def displayPDF(file):
     # Displaying File
     st.markdown(pdf_display, unsafe_allow_html=True)
 
+@st.cache
+def getAnswer(files):
+    pre_list = []
+    for file in files:
+        text = extract_text(file, codec='utf-8').replace('\xa0', ' ')
+        answer_key = text.split('Answer Key')[1]
+        matches = re.findall(r'\d+\.\s[A-E|a-e]', answer_key)
+        column = []
+        for answer in matches:
+            column.append(answer[-1])
+        pre_list.append(column)
+    answer_list = list(zip(*pre_list))
+    return answer_list
+
 
 menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
 choice = st.sidebar.selectbox('Menu', menu)
@@ -210,7 +226,7 @@ if choice == "試場座位":
         st.write("PDF印出至少三份張貼於試場外")
         with open('announce_table.pdf', 'rb') as pdf_file:
             PDFbyte = pdf_file.read()
-        st.download_button('Download PDF', data=PDFbyte, file_name="announce_table.pdf", mime="application/octet-stream")
+        st.download_button('Download PDF',data=PDFbyte, file_name="announce_table.pdf", mime="application/octet-stream")
 if choice == "答案卡":
     st.title("試務工作流程-步驟二")
     st.sidebar.subheader("1. 考試名稱")
@@ -294,9 +310,19 @@ if choice == "試題卷":
             st.warning("上傳檔案數與試題版本數不符！")
 
 if choice == "匯整正確答案":
-    st.write("施工中")
-    image = Image.open("under_construction.gif")
-    st.image(image)
+    st.sidebar.subheader("上傳試卷pdf檔")
+    uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
+    if len(uploaded_files) != 0:
+        answer_df = pd.DataFrame(getAnswer(uploaded_files))
+        answer_df.index += 1
+        answer_df.columns += 1
+        st.dataframe(answer_df)
+        answer_xls = to_excel(answer_df)
+        csv_clicked = st.download_button(
+            label='Download Excel File',
+            data=answer_xls,
+            file_name="correct_answers.xlsx")
+
 if choice == "成績計算":
     st.write("施工中")
     image = Image.open("under_construction.gif")
