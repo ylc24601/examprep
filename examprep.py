@@ -17,6 +17,7 @@ from PIL import Image
 from batch_fill_AS import batchFillAS
 from PyPDF2 import PdfFileWriter, PdfFileReader
 from pdfminer.high_level import extract_text
+import tabula
 # ------------------------------------------
 
 pdfmetrics.registerFont(TTFont('Microsoft Jhenghei', 'Microsoft Jhenghei.ttf'))
@@ -110,17 +111,19 @@ def columnize(data, rows, cols, heading=0):
 #     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
 
 
-def to_excel(df):
-    output = BytesIO()
-    writer = pd.ExcelWriter(output, engine='xlsxwriter')
-    df.to_excel(writer, index=False, sheet_name='Sheet1')
-    workbook = writer.book
-    worksheet = writer.sheets['Sheet1']
-    format1 = workbook.add_format({'num_format': '0.00'})
-    worksheet.set_column('A:A', None, format1)
-    writer.save()
-    processed_data = output.getvalue()
-    return processed_data
+def into_excel(**kwargs):
+    if kwargs is not None:
+        output = BytesIO()
+        writer = pd.ExcelWriter(output, engine='xlsxwriter')
+        for sheet_name, df in kwargs.items():
+            df.to_excel(writer, index=False, sheet_name=sheet_name)
+            # workbook = writer.book
+            # worksheet = writer.sheets['Sheet1']
+            # format1 = workbook.add_format({'num_format': '0.00'})
+            # worksheet.set_column('A:A', None, format1)
+        writer.save()
+        processed_data = output.getvalue()
+        return processed_data
 
 
 def fillTestSheet(uploaded_file, preview, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT):
@@ -184,6 +187,21 @@ def getAnswer(files):
     return answer_list
 
 
+def get_pdf_page_count(file):
+    reader = PdfFileReader(BytesIO(file.getvalue()), "rb")
+    return reader.getNumPages()
+
+
+def get_original_question(file):
+    dfs = tabula.read_pdf(file, pages=get_pdf_page_count(file), pandas_options={'header': None}, guess=False)
+    dfs = dfs[0][0].iloc[6:56]
+    dfs = dfs.str.split(expand=True)
+    dfs.rename(columns={dfs.columns[0]: "question", dfs.columns[1]: "original"}, inplace=True)
+    dfs.dropna(inplace=True)
+    dfs.original = dfs.original.astype('int')
+    return dfs.original.to_numpy()
+
+
 menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
 choice = st.sidebar.selectbox('Menu', menu)
 st.sidebar.write("---")
@@ -215,7 +233,7 @@ if choice == "試場座位":
     else:
         final_output = master_table(roll_list, SEAT, version)
         st.dataframe(final_output)
-        mt = to_excel(final_output)
+        mt = into_excel(masterTable=final_output)
         makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
 
         st.write("此為重要檔案，請妥善保存!")
@@ -315,17 +333,25 @@ if choice == "匯整正確答案":
     if len(uploaded_files) == 0:
         st.subheader("此功能僅限於以Macmillan(Cognero) Test Generator出題之試卷")
     else:
-        with st.spinner("Please wait..."):
-            answer_df = pd.DataFrame(getAnswer(uploaded_files))
-            answer_df.index += 1
-            answer_df.columns += 1
-        st.dataframe(answer_df)
-        answer_xls = to_excel(answer_df)
+        answer_df = pd.DataFrame(getAnswer(uploaded_files))
+        answer_df.index += 1
+        answer_df.columns += 1
+
+        map_df = pd.DataFrame({"question": range(1, 51)})
+        for file in uploaded_files:
+            map_df[file.name[-5:-4]] = get_original_question(file)
+        map_df.set_index("question")
+        col1, col2 = st.columns(2)
+        col1.subheader("Correct Answers")
+        col1.dataframe(answer_df)
+        col2.subheader("Scramble Map")
+        col2.dataframe(map_df)
+        st.write("下載前請檢查試卷版與答案是否相符")
+        answer_xls = into_excel(answers=answer_df, map=map_df)
         csv_clicked = st.download_button(
             label='Download Excel File',
             data=answer_xls,
             file_name="correct_answers.xlsx")
-
 
 if choice == "成績計算":
     st.write("施工中")
