@@ -339,7 +339,7 @@ if choice == "匯整正確答案":
         for test_file in uploaded_files:
             pages = get_pdf_page_count(test_file)
             print(pages)
-            map_df[file.name[-5:-4]] = get_original_question(test_file, pages)
+            map_df[test_file.name[-5:-4]] = get_original_question(test_file, pages)
         map_df.set_index("question")
         col1, col2 = st.columns(2)
         col1.subheader("Correct Answers")
