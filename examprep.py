@@ -326,7 +326,6 @@ if choice == "試題卷":
                     mime="application/zip")
         else:
             st.warning("上傳檔案數與試題版本數不符！")
-
 if choice == "匯整正確答案":
     st.sidebar.subheader("上傳試卷pdf檔")
     uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
@@ -336,10 +335,9 @@ if choice == "匯整正確答案":
         answer_df = pd.DataFrame(getAnswer(uploaded_files))
         answer_df.index += 1
         answer_df.columns += 1
-
         map_df = pd.DataFrame({"question": range(1, 51)})
-        for file in uploaded_files:
-            map_df[file.name[-5:-4]] = get_original_question(file)
+        for test_file in uploaded_files:
+            map_df[file.name[-5:-4]] = get_original_question(test_file)
         map_df.set_index("question")
         col1, col2 = st.columns(2)
         col1.subheader("Correct Answers")
@@ -352,7 +350,6 @@ if choice == "匯整正確答案":
             label='Download Excel File',
             data=answer_xls,
             file_name="correct_answers.xlsx")
-
 if choice == "成績計算":
     st.write("施工中")
     image = Image.open("under_construction.gif")
