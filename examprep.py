@@ -312,16 +312,20 @@ if choice == "試題卷":
 if choice == "匯整正確答案":
     st.sidebar.subheader("上傳試卷pdf檔")
     uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
-    if len(uploaded_files) != 0:
-        answer_df = pd.DataFrame(getAnswer(uploaded_files))
-        answer_df.index += 1
-        answer_df.columns += 1
+    if len(uploaded_files) == 0:
+        st.subheader("此功能僅限於以Macmillan(Cognero) Test Generator出題之試卷")
+    else:
+        with st.spinner("Please wait..."):
+            answer_df = pd.DataFrame(getAnswer(uploaded_files))
+            answer_df.index += 1
+            answer_df.columns += 1
         st.dataframe(answer_df)
         answer_xls = to_excel(answer_df)
         csv_clicked = st.download_button(
             label='Download Excel File',
             data=answer_xls,
             file_name="correct_answers.xlsx")
+
 
 if choice == "成績計算":
     st.write("施工中")
