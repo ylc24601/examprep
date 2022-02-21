@@ -192,8 +192,8 @@ def get_pdf_page_count(file):
     return reader.getNumPages()
 
 
-def get_original_question(file):
-    dfs = tabula.read_pdf(file, pages=get_pdf_page_count(file), pandas_options={'header': None}, guess=False)
+def get_original_question(file, pages):
+    dfs = tabula.read_pdf(file, pages=pages, pandas_options={'header': None}, guess=False)
     dfs = dfs[0][0].iloc[6:56]
     dfs = dfs.str.split(expand=True)
     dfs.rename(columns={dfs.columns[0]: "question", dfs.columns[1]: "original"}, inplace=True)
@@ -337,7 +337,9 @@ if choice == "匯整正確答案":
         answer_df.columns += 1
         map_df = pd.DataFrame({"question": range(1, 51)})
         for test_file in uploaded_files:
-            map_df[file.name[-5:-4]] = get_original_question(test_file)
+            pages = get_pdf_page_count(test_file)
+            print(pages)
+            map_df[file.name[-5:-4]] = get_original_question(test_file, pages)
         map_df.set_index("question")
         col1, col2 = st.columns(2)
         col1.subheader("Correct Answers")
