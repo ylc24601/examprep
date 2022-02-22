@@ -249,7 +249,7 @@ def grade_cal(st_ans, mt, correct_answer,from_cognero=True, qnum=50, point=2, sc
                 personal_detail.append('O')
             else:
                 personal_detail.append('X')
-        
+
         results.append([row[0], score])
         detail.append(personal_detail)
         current_progress += (1/(len(ans_array)))
@@ -431,7 +431,7 @@ if choice == "成績計算":
         st.dataframe(problem_df)
         # st_array = st_ans_df.to_numpy()
         # st_array
-        
+
 
     if correct_answers is not None:
         ca_df = pd.read_excel(correct_answers, index_col=0).T
@@ -441,7 +441,7 @@ if choice == "成績計算":
         st.dataframe(ca_df)
         st.subheader("版本題目對照表")
         st.dataframe(scramble_map)
-  
+
     col1, col2, col3, col4, col5 = st.columns(5)
     if uploaded_mt is not None:
         col1.metric(label="Master Table人數", value=len(df))
@@ -469,7 +469,6 @@ if choice == "成績計算":
             col1.subheader("學生成績")
             col1.dataframe(result_df)
             if len(results) == 3:
-                # st.write(correctness)
                 correctness_df = pd.DataFrame(results[2], index=range(1, 51), columns=("correct_num",))
                 correctness_df["Percent"] = correctness_df['correct_num']*100/len(result_df)
                 correctness_df = correctness_df.round(1)
