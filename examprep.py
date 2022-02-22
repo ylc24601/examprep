@@ -429,8 +429,6 @@ if choice == "成績計算":
         st.dataframe(st_ans_df)
         st.subheader("異常情形")
         st.dataframe(problem_df)
-        # st_array = st_ans_df.to_numpy()
-        # st_array
 
 
     if correct_answers is not None:
