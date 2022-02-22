@@ -1,3 +1,4 @@
+from cProfile import label
 import numpy as np
 import pandas as pd
 import shutil
@@ -8,8 +9,9 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-from io import BytesIO
+from io import BytesIO, StringIO
 import streamlit as st
+import streamlit.components.v1 as components
 import os
 import re
 import base64
@@ -49,7 +51,9 @@ def df2list(df):
 
 @st.cache
 def convert_df(df):
-    return df.to_excel(engine='xlsxwriter')
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
 
 def myFirstPage(canvas, doc):
     canvas.saveState()
@@ -116,7 +120,7 @@ def into_excel(**kwargs):
         output = BytesIO()
         writer = pd.ExcelWriter(output, engine='xlsxwriter')
         for sheet_name, df in kwargs.items():
-            df.to_excel(writer, index=False, sheet_name=sheet_name)
+            df.to_excel(writer, index=True, sheet_name=sheet_name)
             # workbook = writer.book
             # worksheet = writer.sheets['Sheet1']
             # format1 = workbook.add_format({'num_format': '0.00'})
@@ -141,19 +145,15 @@ def fillTestSheet(uploaded_file, preview, page_num_to_trim, ID_LEFT, ID_HEIGHT, 
     packet.seek(0)
     new_pdf = PdfFileReader(packet)
     # read your existing PDF
-    # bytes_data = file.read()
-    # print(bytes_data)
     existing_pdf = PdfFileReader(BytesIO(uploaded_file.getvalue()), "rb")
     output = PdfFileWriter()
     # add the "watermark" (which is the new pdf) on the existing page
     page = existing_pdf.getPage(0)
     page.mergePage(new_pdf.getPage(0))
     output.addPage(page)
-
     for pageNum in range(1, existing_pdf.numPages - page_num_to_trim):
         page_obj = existing_pdf.getPage(pageNum)
         output.addPage(page_obj)
-
     # finally, write "output" to a real file
     if preview:
         output_stream = open(f'preview.pdf', "wb")
@@ -168,9 +168,13 @@ def displayPDF(file):
     with open(file, "rb") as f:
         base64_pdf = base64.b64encode(f.read()).decode('utf-8')
     # Embedding PDF in HTML
+    # embed streamlit docs in a streamlit app
     pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="700" height="1000" type="application/pdf"></iframe>'
     # Displaying File
     st.markdown(pdf_display, unsafe_allow_html=True)
+    # tested the line below but fail
+    # pdf_display = components.iframe(f"data:application/pdf;base64,{base64_pdf}", scrolling=True)
+
 
 @st.cache
 def getAnswer(files):
@@ -200,6 +204,60 @@ def get_original_question(file, pages):
     dfs.dropna(inplace=True)
     dfs.original = dfs.original.astype('int')
     return dfs.original.to_numpy()
+
+
+def answer_dataframe(file):
+    data = StringIO(student_answer_file.read().decode("utf-8"))
+    as_list = [[line[7:16], line[16:66]] for line in data.readlines()]
+    # split student answers to a single char in a list
+    conv_list = []
+    for line in as_list:
+        temp = []
+        for char in line[1]:
+            temp.append(char)
+        comb = [line[0]] + temp
+        conv_list.append(comb)
+    df = pd.DataFrame(conv_list)
+    df.dropna(inplace=True)
+    df.rename(columns={0: 'ID'}, inplace=True)
+    df.set_index("ID", inplace=True)
+    problem_df = df[~df.isin(['A', 'B', 'C', 'D', 'E']).all(axis=1)]
+    df.reset_index(inplace=True)
+    return df, problem_df
+
+
+def grade_cal(st_ans, mt, correct_answer,from_cognero=True, qnum=50, point=2, scramble_map=None):
+    ans_array = st_ans.to_numpy()
+    results = []
+    detail = []
+    if from_cognero:
+        correctness = [0] * qnum
+    # loop through every student
+    progress_bar = st.progress(0)
+    current_progress = 0.0
+    for row in ans_array:
+        score = 0
+        # match the test version
+        personal_detail = [row[0]]
+        ver = mt[mt.ID == int(row[0])]['Version'].values
+        for i in range(1, qnum+1):
+            if row[i].upper() in str(correct_answer.loc[ver][i]):
+                score += point
+                if from_cognero:
+                    original_question = scramble_map.loc[i][str(ver[0])]
+                    correctness[original_question-1] += 1
+                personal_detail.append('O')
+            else:
+                personal_detail.append('X')
+
+        results.append([row[0], score])
+        detail.append(personal_detail)
+        current_progress += (1/(len(ans_array)))
+        progress_bar.progress(current_progress)
+    progress_bar.progress(1.0)
+    if from_cognero:
+        return results, detail, correctness
+    return results, detail
 
 
 menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
@@ -237,7 +295,7 @@ if choice == "試場座位":
         makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
 
         st.write("此為重要檔案，請妥善保存!")
-        csv_clicked = st.download_button(
+        st.download_button(
             label='Download Excel File',
             data=mt,
             file_name="masterTable.xlsx")
@@ -338,21 +396,96 @@ if choice == "匯整正確答案":
         map_df = pd.DataFrame({"question": range(1, 51)})
         for test_file in uploaded_files:
             pages = get_pdf_page_count(test_file)
-            print(pages)
             map_df[test_file.name[-5:-4]] = get_original_question(BytesIO(test_file.getvalue()), pages)
-        map_df.set_index("question")
+        map_df.set_index("question", inplace=True)
         col1, col2 = st.columns(2)
         col1.subheader("Correct Answers")
         col1.dataframe(answer_df)
         col2.subheader("Scramble Map")
         col2.dataframe(map_df)
-        st.write("下載前請檢查試卷版與答案是否相符")
+        st.write("下載前請檢查試卷版本與答案是否相符")
         answer_xls = into_excel(answers=answer_df, map=map_df)
-        csv_clicked = st.download_button(
+        excel_clicked = st.download_button(
             label='Download Excel File',
             data=answer_xls,
             file_name="correct_answers.xlsx")
 if choice == "成績計算":
-    st.write("施工中")
-    image = Image.open("under_construction.gif")
-    st.image(image)
+    st.sidebar.subheader("1. 上傳 masterTable.xlsx")
+    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
+    st.sidebar.subheader("上傳教務處提供之學生作答檔案")
+    student_answer_file = st.sidebar.file_uploader("Upload txt file", accept_multiple_files=False, key=4)
+    st.sidebar.subheader("上傳正確答案")
+    correct_answers = st.sidebar.file_uploader("檔案格式: xlsx", key = 5)
+    if uploaded_mt is not None:
+        df = pd.read_excel(uploaded_mt, index_col=0)
+        version_num = df["Version"].nunique()
+        st.subheader("Master Table")
+        st.dataframe(df)
+
+
+    if student_answer_file is not None:
+        st_ans_df, problem_df= answer_dataframe(student_answer_file)
+        st.subheader("讀卡結果")
+        st.dataframe(st_ans_df)
+        st.subheader("異常情形")
+        st.dataframe(problem_df)
+
+
+    if correct_answers is not None:
+        ca_df = pd.read_excel(correct_answers, index_col=0).T
+        ca_df = ca_df.apply(lambda x: x.str.upper())
+        scramble_map = pd.read_excel(correct_answers, index_col=0, sheet_name=1, header=0)
+        st.subheader("正確答案")
+        st.dataframe(ca_df)
+        st.subheader("版本題目對照表")
+        st.dataframe(scramble_map)
+
+    col1, col2, col3, col4, col5 = st.columns(5)
+    if uploaded_mt is not None:
+        col1.metric(label="Master Table人數", value=len(df))
+        col4.metric(label="Master Table版本數", value=df.Version.nunique())
+    if student_answer_file is not None:
+        col2.metric(label="讀卡總人數", value=len(st_ans_df))
+        col3.metric(label="讀卡異常人數", value=len(problem_df))
+        st.info("檢查作答人數與讀卡人數是否相符")
+    if correct_answers is not None:
+        col5.metric(label="正確答案版本數", value=len(ca_df))
+
+
+    if student_answer_file and correct_answers and uploaded_mt is not None:
+        if df.Version.nunique() != len(ca_df):
+            st.warning("注意! 版本數不符")
+        col1, col2, col3 = st.columns(3)
+        from_cognero = col3.checkbox(label="從Macmillan網站出題", value=True)
+        qnum = col1.number_input(label="題數", value=50)
+        point = col2.number_input(label="每題分數", value=2)
+        if st.button(label="Caculate"):
+            results = grade_cal(st_ans_df, df, ca_df, from_cognero, qnum=qnum, point=point, scramble_map=scramble_map)
+            result_df = pd.DataFrame(results[0], columns=('ID', 'Score'))
+            detail_df = pd.DataFrame(results[1])
+            col1, col2 =st.columns(2)
+            col1.subheader("學生成績")
+            col1.dataframe(result_df)
+            if len(results) == 3:
+                correctness_df = pd.DataFrame(results[2], index=range(1, 51), columns=("correct_num",))
+                correctness_df["Percent"] = correctness_df['correct_num']*100/len(result_df)
+                correctness_df = correctness_df.round(1)
+                col2.subheader("試題答對率")
+                col2.dataframe(correctness_df)
+            st.subheader("學生個別答題情形及分數統計")
+            st.dataframe(detail_df)
+            st.write(result_df.describe().T)
+            score_xls = into_excel(score=result_df, detail=detail_df, correctness=correctness_df, stats=result_df.describe())
+            csv = convert_df(result_df)
+            col1, col2, col3 = st.columns(3)
+            col1.write("完整資訊")
+            col1.download_button(
+                label='Download Excel File',
+                data=score_xls,
+                file_name="Score.xlsx")
+            col2.write("供上傳至數位學習平台")
+            col2.download_button(
+                label="Download Data as CSV",
+                data=csv,
+                file_name='score.csv',
+                mime='text/csv',)
