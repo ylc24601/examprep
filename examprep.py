@@ -200,12 +200,13 @@ def get_pdf_page_count(file):
 
 def get_original_question(file, pages):
     dfs = tabula.read_pdf(file, pages=pages, pandas_options={'header': None}, guess=False)
-    dfs = dfs[0][0].iloc[6:56]
-    dfs = dfs.str.split(expand=True)
-    dfs.rename(columns={dfs.columns[0]: "question", dfs.columns[1]: "original"}, inplace=True)
-    dfs.dropna(inplace=True)
-    dfs.original = dfs.original.astype('int')
-    return dfs.original.to_numpy()
+    dfs[0].dropna(inplace=True)
+    df = dfs[0]
+    df.rename(columns={df.columns[0]:"question", df.columns[1]:"original"}, inplace=True)
+    df.set_index('question', inplace=True)
+    # dfs.iloc[:,1] = dfs.iloc[:,1].astype('int')
+    df.original = df.original.astype('int')
+    return df.original.to_numpy()
 
 
 def answer_dataframe(file):
@@ -417,25 +418,26 @@ if choice == "匯整正確答案":
     uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
     st.subheader("此功能僅限於以Macmillan(Cognero) Test Generator出題之試卷")
     if len(uploaded_files) != 0:
-        answer_df = pd.DataFrame(getAnswer(uploaded_files))
-        answer_df.index += 1
-        answer_df.columns += 1
-        map_df = pd.DataFrame({"question": range(1, 51)})
-        for test_file in uploaded_files:
-            pages = get_pdf_page_count(test_file)
-            map_df[test_file.name[-5:-4]] = get_original_question(BytesIO(test_file.getvalue()), pages)
-        map_df.set_index("question", inplace=True)
-        col1, col2 = st.columns(2)
-        col1.subheader("Correct Answers")
-        col1.dataframe(answer_df)
-        col2.subheader("Scramble Map")
-        col2.dataframe(map_df)
-        st.write("下載前請檢查試卷版本與答案是否相符")
-        answer_xls = into_excel(answers=answer_df, map=map_df)
-        excel_clicked = st.download_button(
-            label='Download Excel File',
-            data=answer_xls,
-            file_name="correct_answers.xlsx")
+        if st.button("Extract Answers"):
+            answer_df = pd.DataFrame(getAnswer(uploaded_files))
+            answer_df.index += 1
+            answer_df.columns += 1
+            map_df = pd.DataFrame({"question": range(1, 51)})
+            for test_file in uploaded_files:
+                pages = get_pdf_page_count(test_file)
+                map_df[test_file.name[-5:-4]] = get_original_question(BytesIO(test_file.getvalue()), pages)
+            map_df.set_index("question", inplace=True)
+            col1, col2 = st.columns(2)
+            col1.subheader("Correct Answers")
+            col1.dataframe(answer_df)
+            col2.subheader("Scramble Map")
+            col2.dataframe(map_df)
+            st.write("下載前請檢查試卷版本與答案是否相符")
+            answer_xls = into_excel(answers=answer_df, map=map_df)
+            excel_clicked = st.download_button(
+                label='Download Excel File',
+                data=answer_xls,
+                file_name="correct_answers.xlsx")
 if choice == "成績計算":
     
     st.sidebar.subheader("上傳 masterTable.xlsx")
