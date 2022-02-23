@@ -471,12 +471,13 @@ if choice == "成績計算":
     if student_answer_file is not None:
         col2.metric(label="讀卡總人數", value=len(st_ans_df))
         col3.metric(label="讀卡異常人數", value=len(problem_df))
-        st.info("檢查作答人數與讀卡人數是否相符")
     if correct_answers is not None:
         col5.metric(label="正確答案版本數", value=len(ca_df))
     if student_answer_file and correct_answers and uploaded_mt is not None:
         if df.Version.nunique() != len(ca_df):
             st.warning("注意! 版本數不符")
+        if len(df) != len(st_ans_df):
+            st.warning("注意! 作答人數與讀卡人數不符")
         col1, col2, col3 = st.columns(3)
         from_cognero = col3.checkbox(label="從Macmillan網站出題", value=True)
         qnum = col1.number_input(label="題數", value=50)
