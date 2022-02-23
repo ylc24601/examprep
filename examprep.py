@@ -456,11 +456,14 @@ if choice == "成績計算":
     if correct_answers is not None:
         ca_df = pd.read_excel(correct_answers, index_col=0).T
         ca_df = ca_df.apply(lambda x: x.str.upper())
-        scramble_map = pd.read_excel(correct_answers, index_col=0, sheet_name=1, header=0)
         st.subheader("正確答案")
         st.dataframe(ca_df)
-        st.subheader("版本題目對照表")
-        st.dataframe(scramble_map)
+        xl = pd.ExcelFile(correct_answers)
+        sheets_num = len(xl.sheet_names)
+        if sheets_num == 2:
+            scramble_map = pd.read_excel(correct_answers, index_col=0, sheet_name=1, header=0)
+            st.subheader("版本題目對照表")
+            st.dataframe(scramble_map)
     col1, col2, col3, col4, col5 = st.columns(5)
     if uploaded_mt is not None:
         col1.metric(label="Master Table人數", value=len(df))
@@ -508,5 +511,3 @@ if choice == "成績計算":
                 data=csv,
                 file_name='score.csv',
                 mime='text/csv',)
-    if uploaded_mt or student_answer_file or correct_answers is None:
-        st.write("#### 算成績用，說明還沒寫...")
