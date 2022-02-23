@@ -502,7 +502,10 @@ if choice == "成績計算":
             st.subheader("學生個別答題情形及分數統計")
             st.dataframe(detail_df)
             st.write(result_df.describe().T)
-            score_xls = into_excel(score=result_df, detail=detail_df, correctness=correctness_df, stats=result_df.describe())
+            if from_cognero:
+                score_xls = into_excel(score=result_df, detail=detail_df, correctness=correctness_df, stats=result_df.describe())
+            else:
+                score_xls = into_excel(score=result_df, detail=detail_df, stats=result_df.describe())
             csv = convert_df(result_df)
             col1, col2, col3 = st.columns(3)
             col1.write("完整資訊")
