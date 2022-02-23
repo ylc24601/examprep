@@ -398,7 +398,7 @@ if choice == "試題卷":
                     for file in uploaded_files:
                         if 'Ver_' + str(Version) in file.name:
                             fillTestSheet(file, False, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
-                            current_progress += (1/(num_rows))
+                            current_progress += (1/(num_rows+1))
                             progress_bar.progress(current_progress)
                 shutil.make_archive("archive", 'zip', "./tmp")
                 progress_bar.progress(1.0)
