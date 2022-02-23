@@ -254,7 +254,7 @@ def grade_cal(st_ans, mt, correct_answer,from_cognero=True, qnum=50, point=2, sc
 
         results.append([row[0], score])
         detail.append(personal_detail)
-        current_progress += (1/(len(ans_array-1)))
+        current_progress += (1/(len(ans_array)-1))
         progress_bar.progress(current_progress)
     progress_bar.progress(1.0)
     if from_cognero:
