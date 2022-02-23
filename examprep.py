@@ -483,6 +483,8 @@ if choice == "成績計算":
         qnum = col1.number_input(label="題數", value=50)
         point = col2.number_input(label="每題分數", value=2)
         if st.button(label="Caculate"):
+            if not from_cognero:
+                scramble_map = None
             results = grade_cal(st_ans_df, df, ca_df, from_cognero, qnum=qnum, point=point, scramble_map=scramble_map)
             result_df = pd.DataFrame(results[0], columns=('ID', 'Score'))
             detail_df = pd.DataFrame(results[1])
