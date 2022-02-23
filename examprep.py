@@ -35,11 +35,13 @@ def master_table(dataframe, seat, ver_num):
     seat.reset_index(inplace=True)
     # Generate test sheet version
     seat['Version'] = np.arange(len(seat)) % ver_num + 1
-    randomized_seat = seat.iloc[0:len(dataframe)].sample(frac=1).reset_index(drop=True)
+    randomized_seat = seat.iloc[0:len(dataframe)].sample(
+        frac=1).reset_index(drop=True)
     # Combine df and randomized_seat
     df_seat = pd.concat([dataframe, randomized_seat], join='inner', axis=1)
     return df_seat
     # Dataframe for Seat Announcement
+
 
 @st.cache
 def df2list(df):
@@ -75,8 +77,9 @@ def myLaterPages(canvas, doc):
     canvas.restoreState()
 
 
-def makeAnnouTable(data, file = 'announce_table.pdf'):
-    doc = SimpleDocTemplate(file, pagesize=A4, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
+def makeAnnouTable(data, file='announce_table.pdf'):
+    doc = SimpleDocTemplate(
+        file, pagesize=A4, topMargin=0.5 * inch, bottomMargin=0.5 * inch)
     # container for the "Flowable" objects
     elements = []
     # convert data into table with each column width
@@ -199,10 +202,12 @@ def get_pdf_page_count(file):
 
 
 def get_original_question(file, pages):
-    dfs = tabula.read_pdf(file, pages=pages, pandas_options={'header': None}, guess=False)
+    dfs = tabula.read_pdf(file, pages=pages, pandas_options={
+                          'header': None}, guess=False)
     dfs[0].dropna(inplace=True)
     df = dfs[0]
-    df.rename(columns={df.columns[0]:"question", df.columns[1]:"original"}, inplace=True)
+    df.rename(columns={df.columns[0]: "question",
+              df.columns[1]: "original"}, inplace=True)
     df.set_index('question', inplace=True)
     df.original = df.original.astype('int')
     return df.original.to_numpy()
@@ -228,7 +233,7 @@ def answer_dataframe(file):
     return df, problem_df
 
 
-def grade_cal(st_ans, mt, correct_answer,from_cognero=True, qnum=50, point=2, scramble_map=None):
+def grade_cal(st_ans, mt, correct_answer, from_cognero=True, qnum=50, point=2, scramble_map=None):
     ans_array = st_ans.to_numpy()
     results = []
     detail = []
@@ -261,6 +266,7 @@ def grade_cal(st_ans, mt, correct_answer,from_cognero=True, qnum=50, point=2, sc
         return results, detail, correctness
     return results, detail
 
+
 st.title("試務工作流程")
 menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
 choice = st.sidebar.selectbox('Menu', menu)
@@ -268,13 +274,15 @@ st.sidebar.write("---")
 
 
 if choice == "試場座位":
-    
+
     st.markdown("### 目的：製作Master Table與試場座位表")
     st.sidebar.subheader("1. 請輸入考試名稱")
-    title = st.sidebar.text_input('顯示於座位公告表之標題', "Biochemistry 1st Exam Seating Table")
+    title = st.sidebar.text_input(
+        '顯示於座位公告表之標題', "Biochemistry 1st Exam Seating Table")
 
     st.sidebar.subheader("2. 選擇試場座位與試卷版本")
-    seat_choice = st.sidebar.radio("座位安排", ('致德堂306人(坐二排空一排)', '致德堂250人(坐一排空一排)'))
+    seat_choice = st.sidebar.radio(
+        "座位安排", ('致德堂306人(坐二排空一排)', '致德堂250人(坐一排空一排)'))
     if seat_choice == "致德堂306人(坐二排空一排)":
         SEAT = pd.read_excel("seat_306.xlsx", header=None, names=['Seat'])
     else:
@@ -282,7 +290,7 @@ if choice == "試場座位":
 
     version = st.sidebar.slider("考卷版本", 1, 10, 5)
     st.sidebar.subheader("3. 上傳學生名冊")
-    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx", key = 1)
+    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx", key=1)
     if uploaded_file is None:
         roll_template = pd.read_excel("roll_list.xlsx")
         st.subheader("學生名冊範例格式")
@@ -296,7 +304,8 @@ if choice == "試場座位":
         # Inject CSS with Markdown
         st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
         st.dataframe(roll_template, 300)
-        roll_template_xls = into_excel(index_output=False, Sheet1=roll_template)
+        roll_template_xls = into_excel(
+            index_output=False, Sheet1=roll_template)
         st.download_button(
             label='下載範例檔',
             data=roll_template_xls,
@@ -316,12 +325,13 @@ if choice == "試場座位":
         st.write("以下【座位表】印出後，張貼至少三份於試場外")
         with open('announce_table.pdf', 'rb') as pdf_file:
             PDFbyte = pdf_file.read()
-        st.download_button('Download PDF',data=PDFbyte, file_name="announce_table.pdf", mime="application/octet-stream")
+        st.download_button('Download PDF', data=PDFbyte,
+                           file_name="announce_table.pdf", mime="application/octet-stream")
 if choice == "答案卡":
     st.sidebar.subheader("1. 輸入考試名稱")
     as_title = st.sidebar.text_input('印於答案卡之標題', "Biochem-1")
     st.sidebar.subheader("2. 上傳 masterTable.xlsx")
-    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
+    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key=2)
     st.sidebar.subheader("3.設定學號列印位置，單位 mm")
     ID_left = st.sidebar.number_input("答案卡左側邊緣至學號左邊界(0)之距離: ", 20.45)
     ID_right = st.sidebar.number_input("答案卡左側邊緣至學號右邊界(9)之距離: ", 60.47)
@@ -337,19 +347,21 @@ if choice == "答案卡":
     else:
         df_seat = pd.read_excel(uploaded_mt, index_col=0)
         st.dataframe(df_seat)
-        batchFillAS(df_seat, "AnswerSheet.pdf", as_title, ID_left, ID_right, ID_top, ID_bottom)
+        batchFillAS(df_seat, "AnswerSheet.pdf", as_title,
+                    ID_left, ID_right, ID_top, ID_bottom)
         with open("AnswerSheet.pdf", 'rb') as pdf_file:
             PDFbyte = pdf_file.read()
         st.download_button(
-        'Download PDF',
-         data=PDFbyte,
-         file_name="AnswerSheet.pdf",
-         mime="application/octet-stream")
+            'Download PDF',
+            data=PDFbyte,
+            file_name="AnswerSheet.pdf",
+            mime="application/octet-stream")
 if choice == "試題卷":
     st.sidebar.subheader("1. 上傳 masterTable.xlsx")
-    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
+    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key=2)
     st.sidebar.subheader("2. 上傳試卷pdf")
-    uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
+    uploaded_files = st.sidebar.file_uploader(
+        "Upload PDF file(s)", accept_multiple_files=True, key=3)
     if uploaded_files or uploaded_mt is None:
         '''
         ### 目的：將學號與座位列印於對應版本之題目卷
@@ -368,27 +380,35 @@ if choice == "試題卷":
         col1.metric(label="應考人數", value=f"{num_rows}人")
         col2.metric(label="試題版本", value=version_num)
     if uploaded_files and uploaded_mt is not None:
-        col3.metric(label="上傳檔案數", value=len(uploaded_files), delta=len(uploaded_files)-version_num)
-        if len(uploaded_files)==version_num:
+        col3.metric(label="上傳檔案數", value=len(uploaded_files),
+                    delta=len(uploaded_files)-version_num)
+        if len(uploaded_files) == version_num:
             with st.expander("定位參數修改"):
                 col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     ID_LEFT = st.number_input("頁面左邊界至學號左緣之距離(mm): ", value=30)
-                    ID_HEIGHT = st.number_input("頁面下邊界至學號下緣之距離(mm): ", value=281)
+                    ID_HEIGHT = st.number_input(
+                        "頁面下邊界至學號下緣之距離(mm): ", value=281)
                     # page_num_to_trim = st.number_input("刪減PDF檔倒數頁數: ", min_value=0, value=2, step=1)
                     # page_num_to_trim = int(page_num_to_trim)
                 with col2:
-                    NAME_LEFT = st.number_input("頁面左邊界至姓名左緣之距離(mm): ", value=65)
-                    NAME_HEIGHT = st.number_input("頁面下邊界至姓名下緣之距離(mm): ", value=281)
+                    NAME_LEFT = st.number_input(
+                        "頁面左邊界至姓名左緣之距離(mm): ", value=65)
+                    NAME_HEIGHT = st.number_input(
+                        "頁面下邊界至姓名下緣之距離(mm): ", value=281)
                 with col3:
-                    CLASS_LEFT = st.number_input("頁面左邊界至期班左緣之距離(mm): ", value=105)
-                    CLASS_HEIGHT = st.number_input("頁面下邊界至期班下緣之距離(mm): ", value=281)
+                    CLASS_LEFT = st.number_input(
+                        "頁面左邊界至期班左緣之距離(mm): ", value=105)
+                    CLASS_HEIGHT = st.number_input(
+                        "頁面下邊界至期班下緣之距離(mm): ", value=281)
                 with col4:
-                    SEAT_LEFT = st.number_input("頁面左邊界至座位左緣之距離(mm): ", value=167)
-                    SEAT_HEIGHT = st.number_input("頁面下邊界至座位下緣之距離(mm): ", value=287)
+                    SEAT_LEFT = st.number_input(
+                        "頁面左邊界至座位左緣之距離(mm): ", value=167)
+                    SEAT_HEIGHT = st.number_input(
+                        "頁面下邊界至座位下緣之距離(mm): ", value=287)
             st.info("目前Preview功能僅限使用Firefox")
-            col1,col2 = st.columns(2)
-            
+            col1, col2 = st.columns(2)
+
             cognero_sheet = col2.checkbox("由Macmillan(Cognero)出題", True)
             col2.caption("勾選後會刪除最後兩頁(答案)")
             if cognero_sheet:
@@ -396,8 +416,9 @@ if choice == "試題卷":
             else:
                 page_num_to_trim = 0
             if col1.button("Preview"):
-                ID, Name, Class, Seat_index, Seat, Version = df_array[0,:]
-                fillTestSheet(uploaded_files[0],True, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
+                ID, Name, Class, Seat_index, Seat, Version = df_array[0, :]
+                fillTestSheet(uploaded_files[0], True, page_num_to_trim, ID_LEFT, ID_HEIGHT,
+                              NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
                 displayPDF("preview.pdf")
             if col1.button("Make All Sheets"):
                 progress_bar = st.progress(0)
@@ -405,7 +426,8 @@ if choice == "試題卷":
                 for ID, Name, Class, Seat_index, Seat, Version in df_array:
                     for file in uploaded_files:
                         if 'Ver_' + str(Version) in file.name:
-                            fillTestSheet(file, False, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
+                            fillTestSheet(file, False, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT,
+                                          NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
                             current_progress += (1/(num_rows+1))
                             progress_bar.progress(current_progress)
                 shutil.make_archive("archive", 'zip', "./tmp")
@@ -414,16 +436,17 @@ if choice == "試題卷":
                 st.balloons()
                 with open("archive.zip", "rb") as zf:
                     btn = st.download_button(
-                    label='Download ZIP',
-                    data=zf,
-                    file_name="archive.zip",
-                    mime="application/zip")
+                        label='Download ZIP',
+                        data=zf,
+                        file_name="archive.zip",
+                        mime="application/zip")
         else:
             st.warning("上傳檔案數與試題版本數不符！")
 if choice == "匯整正確答案":
     st.sidebar.subheader("上傳試卷pdf檔")
-    uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
-    files = sorted(uploaded_files, key=lambda x:x.name)
+    uploaded_files = st.sidebar.file_uploader(
+        "Upload PDF file(s)", accept_multiple_files=True, key=3)
+    files = sorted(uploaded_files, key=lambda x: x.name)
     st.subheader("此功能僅限於以Macmillan(Cognero) Test Generator出題之試卷")
     if len(uploaded_files) != 0:
         if st.button("Extract Answers"):
@@ -433,7 +456,8 @@ if choice == "匯整正確答案":
             map_df = pd.DataFrame({"question": range(1, 51)})
             for test_file in files:
                 pages = get_pdf_page_count(test_file)
-                map_df[test_file.name[-5:-4]] = get_original_question(BytesIO(test_file.getvalue()), pages)
+                map_df[test_file.name[-5:-4]
+                       ] = get_original_question(BytesIO(test_file.getvalue()), pages)
             map_df.set_index("question", inplace=True)
             col1, col2 = st.columns(2)
             col1.subheader("Correct Answers")
@@ -447,20 +471,21 @@ if choice == "匯整正確答案":
                 data=answer_xls,
                 file_name="correct_answers.xlsx")
 if choice == "成績計算":
-    
+
     st.sidebar.subheader("上傳 masterTable.xlsx")
-    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
+    uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key=2)
     st.sidebar.subheader("上傳教務處提供之學生作答檔案")
-    student_answer_file = st.sidebar.file_uploader("Upload txt file", accept_multiple_files=False, key=4)
+    student_answer_file = st.sidebar.file_uploader(
+        "Upload txt file", accept_multiple_files=False, key=4)
     st.sidebar.subheader("上傳正確答案")
-    correct_answers = st.sidebar.file_uploader("檔案格式: xlsx", key = 5)
+    correct_answers = st.sidebar.file_uploader("檔案格式: xlsx", key=5)
     if uploaded_mt is not None:
         df = pd.read_excel(uploaded_mt, index_col=0)
         version_num = df["Version"].nunique()
         st.subheader("Master Table")
         st.dataframe(df)
     if student_answer_file is not None:
-        st_ans_df, problem_df= answer_dataframe(student_answer_file)
+        st_ans_df, problem_df = answer_dataframe(student_answer_file)
         st.subheader("讀卡結果")
         st.dataframe(st_ans_df)
         st.subheader("異常情形")
@@ -473,7 +498,8 @@ if choice == "成績計算":
         xl = pd.ExcelFile(correct_answers)
         sheets_num = len(xl.sheet_names)
         if sheets_num == 2:
-            scramble_map = pd.read_excel(correct_answers, index_col=0, sheet_name=1, header=0)
+            scramble_map = pd.read_excel(
+                correct_answers, index_col=0, sheet_name=1, header=0)
             st.subheader("版本題目對照表")
             st.dataframe(scramble_map)
     col1, col2, col3, col4, col5 = st.columns(5)
@@ -497,15 +523,18 @@ if choice == "成績計算":
         if st.button(label="Caculate"):
             if not from_cognero:
                 scramble_map = None
-            results = grade_cal(st_ans_df, df, ca_df, from_cognero, qnum=qnum, point=point, scramble_map=scramble_map)
+            results = grade_cal(st_ans_df, df, ca_df, from_cognero,
+                                qnum=qnum, point=point, scramble_map=scramble_map)
             result_df = pd.DataFrame(results[0], columns=('ID', 'Score'))
             detail_df = pd.DataFrame(results[1])
-            col1, col2 =st.columns(2)
+            col1, col2 = st.columns(2)
             col1.subheader("學生成績")
             col1.dataframe(result_df)
             if len(results) == 3:
-                correctness_df = pd.DataFrame(results[2], index=range(1, 51), columns=("correct_num",))
-                correctness_df["Percent"] = correctness_df['correct_num']*100/len(result_df)
+                correctness_df = pd.DataFrame(
+                    results[2], index=range(1, 51), columns=("correct_num",))
+                correctness_df["Percent"] = correctness_df['correct_num'] * \
+                    100/len(result_df)
                 correctness_df = correctness_df.round(1)
                 col2.subheader("試題答對率")
                 col2.dataframe(correctness_df)
@@ -519,14 +548,16 @@ if choice == "成績計算":
             # # Plot!
             # st.plotly_chart(fig, use_container_width=True)
             st.write(result_df.describe().T)
-            
+
             if from_cognero:
-                score_xls = into_excel(score=result_df, detail=detail_df, correctness=correctness_df, stats=result_df.describe())
+                score_xls = into_excel(score=result_df, detail=detail_df,
+                                       correctness=correctness_df, stats=result_df.describe())
             else:
-                score_xls = into_excel(score=result_df, detail=detail_df, stats=result_df.describe())
+                score_xls = into_excel(
+                    score=result_df, detail=detail_df, stats=result_df.describe())
             csv = convert_df(result_df)
             col1, col2, col3 = st.columns(3)
-           
+
             col1.download_button(
                 label='Download Excel File',
                 data=score_xls,
