@@ -410,7 +410,7 @@ if choice == "匯整正確答案":
             data=answer_xls,
             file_name="correct_answers.xlsx")
 if choice == "成績計算":
-    st.sidebar.subheader("1. 上傳 masterTable.xlsx")
+    st.sidebar.subheader("上傳 masterTable.xlsx")
     uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
     st.sidebar.subheader("上傳教務處提供之學生作答檔案")
     student_answer_file = st.sidebar.file_uploader("Upload txt file", accept_multiple_files=False, key=4)
@@ -421,16 +421,12 @@ if choice == "成績計算":
         version_num = df["Version"].nunique()
         st.subheader("Master Table")
         st.dataframe(df)
-
-
     if student_answer_file is not None:
         st_ans_df, problem_df= answer_dataframe(student_answer_file)
         st.subheader("讀卡結果")
         st.dataframe(st_ans_df)
         st.subheader("異常情形")
         st.dataframe(problem_df)
-
-
     if correct_answers is not None:
         ca_df = pd.read_excel(correct_answers, index_col=0).T
         ca_df = ca_df.apply(lambda x: x.str.upper())
@@ -439,7 +435,6 @@ if choice == "成績計算":
         st.dataframe(ca_df)
         st.subheader("版本題目對照表")
         st.dataframe(scramble_map)
-
     col1, col2, col3, col4, col5 = st.columns(5)
     if uploaded_mt is not None:
         col1.metric(label="Master Table人數", value=len(df))
@@ -450,8 +445,6 @@ if choice == "成績計算":
         st.info("檢查作答人數與讀卡人數是否相符")
     if correct_answers is not None:
         col5.metric(label="正確答案版本數", value=len(ca_df))
-
-
     if student_answer_file and correct_answers and uploaded_mt is not None:
         if df.Version.nunique() != len(ca_df):
             st.warning("注意! 版本數不符")
