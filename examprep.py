@@ -115,12 +115,12 @@ def columnize(data, rows, cols, heading=0):
 #     return f'<a href="data:application/octet-stream;base64,{b64.decode()}" download="{filename}.pdf">Download file</a>'
 
 
-def into_excel(**kwargs):
+def into_excel(index_output=True, **kwargs):
     if kwargs is not None:
         output = BytesIO()
         writer = pd.ExcelWriter(output, engine='xlsxwriter')
         for sheet_name, df in kwargs.items():
-            df.to_excel(writer, index=True, sheet_name=sheet_name)
+            df.to_excel(writer, index=index_output, sheet_name=sheet_name)
             # workbook = writer.book
             # worksheet = writer.sheets['Sheet1']
             # format1 = workbook.add_format({'num_format': '0.00'})
@@ -259,62 +259,80 @@ def grade_cal(st_ans, mt, correct_answer,from_cognero=True, qnum=50, point=2, sc
         return results, detail, correctness
     return results, detail
 
-
+st.title("試務工作流程")
 menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
 choice = st.sidebar.selectbox('Menu', menu)
 st.sidebar.write("---")
 
 
 if choice == "試場座位":
-    st.title("試務工作流程-步驟一")
-    st.write("## 製作試場座位表")
-    st.sidebar.subheader("1. 考試名稱")
-    title = st.sidebar.text_input('顯示於座位公告表之標題', "Biochemistry 1st Exam Seat Table")
-    st.sidebar.subheader("2. 上傳學生名冊")
-    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx", key = 1)
-    if uploaded_file is not None:
-        # Can be used wherever a "file-like" object is accepted:
-        roll_list = pd.read_excel(uploaded_file)
-        # st.dataframe(roll_list, 300)
+    
+    st.markdown("### 目的：製作Master Table與試場座位表")
+    st.sidebar.subheader("1. 請輸入考試名稱")
+    title = st.sidebar.text_input('顯示於座位公告表之標題', "Biochemistry 1st Exam Seating Table")
 
-    st.sidebar.subheader("3. 選擇試場座位與試卷版本")
+    st.sidebar.subheader("2. 選擇試場座位與試卷版本")
     seat_choice = st.sidebar.radio("座位安排", ('致德堂306人(坐二排空一排)', '致德堂250人(坐一排空一排)'))
     if seat_choice == "致德堂306人(坐二排空一排)":
         SEAT = pd.read_excel("seat_306.xlsx", header=None, names=['Seat'])
     else:
         SEAT = pd.read_excel("seat_250.xlsx", header=None, names=['Seat'])
 
-    version = st.sidebar.slider("考卷版本", 1, 10, 1)
-
+    version = st.sidebar.slider("考卷版本", 1, 10, 5)
+    st.sidebar.subheader("3. 上傳學生名冊")
+    uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx", key = 1)
     if uploaded_file is None:
-        st.empty()
+        roll_template = pd.read_excel("roll_list.xlsx")
+        st.subheader("學生名冊範例格式")
+        # CSS to inject contained in a string
+        hide_dataframe_row_index = """
+                    <style>
+                    .row_heading.level0 {display:none}
+                    .blank {display:none}
+                    </style>
+                    """
+        # Inject CSS with Markdown
+        st.markdown(hide_dataframe_row_index, unsafe_allow_html=True)
+        st.dataframe(roll_template, 300)
+        roll_template_xls = into_excel(index_output=False, Sheet1=roll_template)
+        st.download_button(
+            label='下載範例檔',
+            data=roll_template_xls,
+            file_name="roll_list.xlsx")
     else:
+        roll_list = pd.read_excel(uploaded_file)
         final_output = master_table(roll_list, SEAT, version)
         st.dataframe(final_output)
         mt = into_excel(masterTable=final_output)
         makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
 
-        st.write("此為重要檔案，請妥善保存!")
+        st.write("此Excel檔將用於整個試務流程之重要檔案，請妥善保存!")
         st.download_button(
-            label='Download Excel File',
+            label='Download Master Table',
             data=mt,
             file_name="masterTable.xlsx")
-        st.write("PDF印出至少三份張貼於試場外")
+        st.write("以下【座位表】印出後，張貼至少三份於試場外")
         with open('announce_table.pdf', 'rb') as pdf_file:
             PDFbyte = pdf_file.read()
         st.download_button('Download PDF',data=PDFbyte, file_name="announce_table.pdf", mime="application/octet-stream")
 if choice == "答案卡":
-    st.title("試務工作流程-步驟二")
-    st.sidebar.subheader("1. 考試名稱")
-    as_title = st.sidebar.text_input('顯示於答案之標題', "Biochem-1")
+    st.sidebar.subheader("1. 輸入考試名稱")
+    as_title = st.sidebar.text_input('印於答案卡之標題', "Biochem-1")
     st.sidebar.subheader("2. 上傳 masterTable.xlsx")
     uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
-    st.sidebar.subheader("3.設定列印位置，單位 mm")
+    st.sidebar.subheader("3.設定學號列印位置，單位 mm")
     ID_left = st.sidebar.number_input("答案卡左側邊緣至學號左邊界(0)之距離: ", 20.45)
     ID_right = st.sidebar.number_input("答案卡左側邊緣至學號右邊界(9)之距離: ", 60.47)
     ID_top = st.sidebar.number_input("答案卡下緣至學號上邊界之距離: ", 192.58)
     ID_bottom = st.sidebar.number_input("答案卡下緣至學號下邊界之距離:: ", 151.05)
-    if uploaded_mt is not None:
+    if uploaded_mt is None:
+        '''
+        ### 目的：自動依 Master Table 將學號與座位列印於答案卡上
+        建議在固定的印表機列印，紙張設定須改為 **A5**
+
+        先列印一張，調整參數確認無誤後再印出全部
+        '''
+    else:
         df_seat = pd.read_excel(uploaded_mt, index_col=0)
         st.dataframe(df_seat)
         batchFillAS(df_seat, "AnswerSheet.pdf", as_title, ID_left, ID_right, ID_top, ID_bottom)
@@ -330,6 +348,14 @@ if choice == "試題卷":
     uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
     st.sidebar.subheader("2. 上傳試卷pdf")
     uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
+    if uploaded_files or uploaded_mt is None:
+        '''
+        ### 目的：將學號與座位列印於對應版本之題目卷
+        #### 說明：
+        試卷檔名格式請依照 ...Ver_1.pdf
+
+        其中數字為版本編號
+        '''
     if uploaded_mt is not None:
         df = pd.read_excel(uploaded_mt, index_col=0)
         version_num = df["Version"].nunique()
@@ -387,9 +413,8 @@ if choice == "試題卷":
 if choice == "匯整正確答案":
     st.sidebar.subheader("上傳試卷pdf檔")
     uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
-    if len(uploaded_files) == 0:
-        st.subheader("此功能僅限於以Macmillan(Cognero) Test Generator出題之試卷")
-    else:
+    st.subheader("此功能僅限於以Macmillan(Cognero) Test Generator出題之試卷")
+    if len(uploaded_files) != 0:
         answer_df = pd.DataFrame(getAnswer(uploaded_files))
         answer_df.index += 1
         answer_df.columns += 1
@@ -410,6 +435,7 @@ if choice == "匯整正確答案":
             data=answer_xls,
             file_name="correct_answers.xlsx")
 if choice == "成績計算":
+    
     st.sidebar.subheader("上傳 masterTable.xlsx")
     uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key = 2)
     st.sidebar.subheader("上傳教務處提供之學生作答檔案")
@@ -482,3 +508,5 @@ if choice == "成績計算":
                 data=csv,
                 file_name='score.csv',
                 mime='text/csv',)
+    if uploaded_mt or student_answer_file or correct_answers is None:
+        st.write("#### 算成績用，說明還沒寫...")
