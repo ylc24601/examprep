@@ -204,7 +204,6 @@ def get_original_question(file, pages):
     df = dfs[0]
     df.rename(columns={df.columns[0]:"question", df.columns[1]:"original"}, inplace=True)
     df.set_index('question', inplace=True)
-    # dfs.iloc[:,1] = dfs.iloc[:,1].astype('int')
     df.original = df.original.astype('int')
     return df.original.to_numpy()
 
@@ -376,8 +375,8 @@ if choice == "試題卷":
                 with col1:
                     ID_LEFT = st.number_input("頁面左邊界至學號左緣之距離(mm): ", value=30)
                     ID_HEIGHT = st.number_input("頁面下邊界至學號下緣之距離(mm): ", value=281)
-                    page_num_to_trim = st.number_input("刪減PDF檔倒數頁數: ", min_value=0, value=2, step=1)
-                    page_num_to_trim = int(page_num_to_trim)
+                    # page_num_to_trim = st.number_input("刪減PDF檔倒數頁數: ", min_value=0, value=2, step=1)
+                    # page_num_to_trim = int(page_num_to_trim)
                 with col2:
                     NAME_LEFT = st.number_input("頁面左邊界至姓名左緣之距離(mm): ", value=65)
                     NAME_HEIGHT = st.number_input("頁面下邊界至姓名下緣之距離(mm): ", value=281)
@@ -388,11 +387,19 @@ if choice == "試題卷":
                     SEAT_LEFT = st.number_input("頁面左邊界至座位左緣之距離(mm): ", value=167)
                     SEAT_HEIGHT = st.number_input("頁面下邊界至座位下緣之距離(mm): ", value=287)
             st.info("目前Preview功能僅限使用Firefox")
-            if st.button("Preview"):
+            col1,col2 = st.columns(2)
+            
+            cognero_sheet = col2.checkbox("由Macmillan(Cognero)出題", True)
+            col2.caption("勾選後會刪除最後兩頁(答案)")
+            if cognero_sheet:
+                page_num_to_trim = 2
+            else:
+                page_num_to_trim = 0
+            if col1.button("Preview"):
                 ID, Name, Class, Seat_index, Seat, Version = df_array[0,:]
                 fillTestSheet(uploaded_files[0],True, page_num_to_trim, ID_LEFT, ID_HEIGHT, NAME_LEFT, NAME_HEIGHT, CLASS_LEFT, CLASS_HEIGHT, SEAT_LEFT, SEAT_HEIGHT)
                 displayPDF("preview.pdf")
-            if st.button("Make All Sheets"):
+            if col1.button("Make All Sheets"):
                 progress_bar = st.progress(0)
                 current_progress = 0.0
                 for ID, Name, Class, Seat_index, Seat, Version in df_array:
@@ -493,7 +500,6 @@ if choice == "成績計算":
             results = grade_cal(st_ans_df, df, ca_df, from_cognero, qnum=qnum, point=point, scramble_map=scramble_map)
             result_df = pd.DataFrame(results[0], columns=('ID', 'Score'))
             detail_df = pd.DataFrame(results[1])
-            st.balloons()
             col1, col2 =st.columns(2)
             col1.subheader("學生成績")
             col1.dataframe(result_df)
