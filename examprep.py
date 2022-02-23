@@ -1,25 +1,27 @@
+import base64
+import re
+import shutil
 from cProfile import label
+from io import BytesIO, StringIO
+
 import numpy as np
 import pandas as pd
-import shutil
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+import streamlit as st
+import streamlit.components.v1 as components
+import tabula
+from pdfminer.high_level import extract_text
+from PIL import Image
+from PyPDF2 import PdfFileReader, PdfFileWriter
 from reportlab.lib import colors
-from reportlab.lib.units import mm, cm, inch
 from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm, inch, mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
-from io import BytesIO, StringIO
-import streamlit as st
-import streamlit.components.v1 as components
-import os
-import re
-import base64
-from PIL import Image
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+
 from batch_fill_AS import batchFillAS
-from PyPDF2 import PdfFileWriter, PdfFileReader
-from pdfminer.high_level import extract_text
-import tabula
+
 # ------------------------------------------
 
 pdfmetrics.registerFont(TTFont('Microsoft Jhenghei', 'Microsoft Jhenghei.ttf'))
