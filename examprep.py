@@ -179,7 +179,7 @@ def displayPDF(file):
 
 
 @st.cache
-def getAnswer(files):
+def getAnswer(uploaded_files):
     pre_list = []
     for file in files:
         text = extract_text(file, codec='utf-8').replace('\xa0', ' ')
@@ -416,14 +416,15 @@ if choice == "試題卷":
 if choice == "匯整正確答案":
     st.sidebar.subheader("上傳試卷pdf檔")
     uploaded_files = st.sidebar.file_uploader("Upload PDF file(s)", accept_multiple_files=True, key=3)
+    files = sorted(uploaded_files, key=lambda x:x.name)
     st.subheader("此功能僅限於以Macmillan(Cognero) Test Generator出題之試卷")
     if len(uploaded_files) != 0:
         if st.button("Extract Answers"):
-            answer_df = pd.DataFrame(getAnswer(uploaded_files))
+            answer_df = pd.DataFrame(getAnswer(files))
             answer_df.index += 1
             answer_df.columns += 1
             map_df = pd.DataFrame({"question": range(1, 51)})
-            for test_file in uploaded_files:
+            for test_file in files:
                 pages = get_pdf_page_count(test_file)
                 map_df[test_file.name[-5:-4]] = get_original_question(BytesIO(test_file.getvalue()), pages)
             map_df.set_index("question", inplace=True)
@@ -492,6 +493,7 @@ if choice == "成績計算":
             results = grade_cal(st_ans_df, df, ca_df, from_cognero, qnum=qnum, point=point, scramble_map=scramble_map)
             result_df = pd.DataFrame(results[0], columns=('ID', 'Score'))
             detail_df = pd.DataFrame(results[1])
+            st.balloons()
             col1, col2 =st.columns(2)
             col1.subheader("學生成績")
             col1.dataframe(result_df)
@@ -501,23 +503,31 @@ if choice == "成績計算":
                 correctness_df = correctness_df.round(1)
                 col2.subheader("試題答對率")
                 col2.dataframe(correctness_df)
-            st.subheader("學生個別答題情形及分數統計")
+            st.subheader("學生個別答題情形")
             st.dataframe(detail_df)
+            st.subheader("分數統計")
+            # Create distplot with custom bin_size
+            # group_labels = ['Grade Distribution']
+            # fig = ff.create_distplot([result_df.Score], group_labels, bin_size=1)
+
+            # # Plot!
+            # st.plotly_chart(fig, use_container_width=True)
             st.write(result_df.describe().T)
+            
             if from_cognero:
                 score_xls = into_excel(score=result_df, detail=detail_df, correctness=correctness_df, stats=result_df.describe())
             else:
                 score_xls = into_excel(score=result_df, detail=detail_df, stats=result_df.describe())
             csv = convert_df(result_df)
             col1, col2, col3 = st.columns(3)
-            col1.write("完整資訊")
+           
             col1.download_button(
                 label='Download Excel File',
                 data=score_xls,
                 file_name="Score.xlsx")
-            col2.write("供上傳至數位學習平台")
             col2.download_button(
                 label="Download Data as CSV",
                 data=csv,
                 file_name='score.csv',
                 mime='text/csv',)
+            col2.write("上傳至數位學習平台用")
