@@ -1,7 +1,6 @@
 import base64
 import re
 import shutil
-from cProfile import label
 from io import BytesIO, StringIO
 
 import numpy as np
@@ -201,16 +200,18 @@ def get_pdf_page_count(file):
     return reader.getNumPages()
 
 
-def get_original_question(file, pages):
-    dfs = tabula.read_pdf(file, pages=pages, pandas_options={
-                          'header': None}, guess=False)
-    dfs[0].dropna(inplace=True)
-    df = dfs[0]
+def get_original_question(file):
+    pages = get_pdf_page_count(file)
+    ver = re.findall("Ver_(\d)", file.name)
+    raw_df = tabula.read_pdf(BytesIO(file.getvalue()), pages=pages, pandas_options={
+                          'header': None})
+    raw_df[0].dropna(inplace=True)
+    df = raw_df[0]
     df.rename(columns={df.columns[0]: "question",
-              df.columns[1]: "original"}, inplace=True)
+              df.columns[1]: str(ver[0])}, inplace=True)
     df.set_index('question', inplace=True)
-    df.original = df.original.astype('int')
-    return df.original.to_numpy()
+    df = df.astype('str')
+    return df
 
 
 def answer_dataframe(file):
@@ -453,12 +454,17 @@ if choice == "匯整正確答案":
             answer_df = pd.DataFrame(getAnswer(files))
             answer_df.index += 1
             answer_df.columns += 1
-            map_df = pd.DataFrame({"question": range(1, 51)})
-            for test_file in files:
-                pages = get_pdf_page_count(test_file)
-                map_df[test_file.name[-5:-4]
-                       ] = get_original_question(BytesIO(test_file.getvalue()), pages)
-            map_df.set_index("question", inplace=True)
+            #scramble map generation
+            if len(uploaded_files) == 1:
+                map_df =get_original_question(uploaded_files[0])
+            else:
+                df_list = []
+                # map_df = pd.DataFrame({"question": range(1, 51)})
+                for file in files:
+                    df = get_original_question(file)
+                    df_list.append(df)
+                map_df=pd.concat(df_list, axis=1)
+                # map_df.set_index("question", inplace=True)
             col1, col2 = st.columns(2)
             col1.subheader("Correct Answers")
             col1.dataframe(answer_df)
@@ -557,7 +563,6 @@ if choice == "成績計算":
                     score=result_df, detail=detail_df, stats=result_df.describe())
             csv = convert_df(result_df)
             col1, col2, col3 = st.columns(3)
-
             col1.download_button(
                 label='Download Excel File',
                 data=score_xls,
