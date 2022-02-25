@@ -207,17 +207,47 @@ def get_original_question(file, question_num):
     # raw_df[0].dropna(inplace=True)
     # df = raw_df[0]
     text = extract_text(file,page_numbers=[page_num-1],codec='utf-8').replace('\xa0',' ')
-    num = [str(x) for x in range(1, question_num+1)]
-    pattern = "(\d{1,2})".join(num)+"(\d{1,2})"
-    result = re.findall(pattern, text)
-    print("------------------")
-    print("result number:", len(result))
-    print("------------------")
-    df = pd.DataFrame(result[0])
+    # print(text)
+    number_text = re.findall("#\d+", text)
+    string = number_text[0]
+    
+    left_num = [str(x) for x in range(1,question_num+1)]
+    match_list = []
+    # print("string:", string)
+    for i in range(question_num, 0, -1):
+        
+        pattern = f"({i})" + "(?=(\d{1,2}))"
+        matches = re.findall(pattern, string[-4:])
+        # print("matches:", matches)
+        if len(matches) == 1:
+            match = matches[0]     
+            left_num.remove(match[1])
+            # print(left_num)
+            match_list.insert(0, match[1])
+            matched_len = len(match[0])+len(match[1])
+        else:
+            # print("matches: ", matches)
+            for match in matches:
+                if match[1] in left_num:
+                    # print("match: ", match)
+                    left_num.remove(match[1])
+                    # print(left_num)
+                    match_list.insert(0, match[1])
+                    # print(match)
+                    matched_len = len(match[0])+len(match[1])
+        
+        # print("matches_len: ", matched_len)
+        string=string[:-matched_len]
+        # print("----end loop----")
+        # print("string:", string)
+    # num = [str(x) for x in range(1, question_num+1)]
+    # pattern = "(\d{1,2})".join(num)+"(\d{1,2})"
+    # result = re.findall(pattern, text)
+    df = pd.DataFrame(match_list)
     df.rename(columns={df.columns[0]: str(ver[0])}, inplace=True)
     # df.set_index('question', inplace=True)
     df.index +=1
-    # df = df.astype('str')
+    df = df.astype('int64')
     return df
 
 
@@ -275,7 +305,7 @@ def grade_cal(st_ans, mt, correct_answer, from_cognero=True, qnum=50, point=2, s
     return results, detail
 
 
-st.title("試務工作流程")
+st.title("Examination Workflow")
 menu = ["試場座位", "答案卡", "試題卷", "匯整正確答案", "成績計算"]
 choice = st.sidebar.selectbox('Menu', menu)
 st.sidebar.write("---")
@@ -467,10 +497,12 @@ if choice == "匯整正確答案":
                 map_df =get_original_question(uploaded_files[0], question_num)
             else:
                 df_list = []
+                unique_df = []
                 # map_df = pd.DataFrame({"question": range(1, 51)})
                 for file in files:
                     df = get_original_question(file, question_num)
                     df_list.append(df)
+                    unique_df.append(df.nunique())
                 map_df=pd.concat(df_list, axis=1)
                 # map_df.set_index("question", inplace=True)
             col1, col2 = st.columns(2)
@@ -479,16 +511,25 @@ if choice == "匯整正確答案":
             col2.subheader("Scramble Map")
             col2.dataframe(map_df)
             st.write("下載前請檢查試卷版本與答案是否相符")
+            st.write(unique_df)
             answer_xls = into_excel(answers=answer_df, map=map_df)
             excel_clicked = st.download_button(
                 label='Download Excel File',
                 data=answer_xls,
                 file_name="correct_answers.xlsx")
 if choice == "成績計算":
+    # Parameter Setting
+    st.subheader("參數設定")
     col1, col2, col3 = st.columns(3)
-    from_cognero = col3.checkbox(label="從Macmillan網站出題", value=True)
+    
     qnum = col1.number_input(label="題數", value=50)
     point = col2.number_input(label="每題分數", value=2.0)
+    col3.metric(label="總分", value = qnum * point)
+    from_cognero = col1.checkbox(label="從Macmillan網站出題", value=True)
+    if qnum * point != 100:
+        st.warning("注意: 總分不是100分!")
+    st.write("---")
+    # Sidebar Setting
     st.sidebar.subheader("上傳 masterTable.xlsx")
     uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key=2)
     st.sidebar.subheader("上傳教務處提供之學生作答檔案")
@@ -496,6 +537,7 @@ if choice == "成績計算":
         "Upload txt file", accept_multiple_files=False, key=4)
     st.sidebar.subheader("上傳正確答案")
     correct_answers = st.sidebar.file_uploader("檔案格式: xlsx", key=5)
+    
     if uploaded_mt is not None:
         df = pd.read_excel(uploaded_mt, index_col=0)
         version_num = df["Version"].nunique()
@@ -546,7 +588,7 @@ if choice == "成績計算":
             col1.dataframe(result_df)
             if len(results) == 3:
                 correctness_df = pd.DataFrame(
-                    results[2], index=range(1, 51), columns=("correct_num",))
+                    results[2], index=range(1, qnum+1), columns=("correct_num",))
                 correctness_df["Percent"] = correctness_df['correct_num'] * \
                     100/len(result_df)
                 correctness_df = correctness_df.round(1)
