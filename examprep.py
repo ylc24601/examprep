@@ -221,9 +221,9 @@ def get_original_question(file, question_num):
     return df
 
 
-def answer_dataframe(file):
+def answer_dataframe(file, question_num):
     data = StringIO(student_answer_file.read().decode("utf-8"))
-    as_list = [[line[7:16], line[16:66]] for line in data.readlines()]
+    as_list = [[line[7:16], line[16:question_num+16]] for line in data.readlines()]
     # split student answers to a single char in a list
     conv_list = []
     for line in as_list:
@@ -485,7 +485,10 @@ if choice == "匯整正確答案":
                 data=answer_xls,
                 file_name="correct_answers.xlsx")
 if choice == "成績計算":
-
+    col1, col2, col3 = st.columns(3)
+    from_cognero = col3.checkbox(label="從Macmillan網站出題", value=True)
+    qnum = col1.number_input(label="題數", value=50)
+    point = col2.number_input(label="每題分數", value=2.0)
     st.sidebar.subheader("上傳 masterTable.xlsx")
     uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key=2)
     st.sidebar.subheader("上傳教務處提供之學生作答檔案")
@@ -499,7 +502,7 @@ if choice == "成績計算":
         st.subheader("Master Table")
         st.dataframe(df)
     if student_answer_file is not None:
-        st_ans_df, problem_df = answer_dataframe(student_answer_file)
+        st_ans_df, problem_df = answer_dataframe(student_answer_file, qnum)
         st.subheader("讀卡結果")
         st.dataframe(st_ans_df)
         st.subheader("異常情形")
@@ -530,10 +533,7 @@ if choice == "成績計算":
             st.warning("注意! 版本數不符")
         if len(df) != len(st_ans_df):
             st.warning("注意! 作答人數與讀卡人數不符")
-        col1, col2, col3 = st.columns(3)
-        from_cognero = col3.checkbox(label="從Macmillan網站出題", value=True)
-        qnum = col1.number_input(label="題數", value=50)
-        point = col2.number_input(label="每題分數", value=2)
+
         if st.button(label="Caculate"):
             if not from_cognero:
                 scramble_map = None
