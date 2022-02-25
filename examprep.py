@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
-import tabula
+# import tabula
 from pdfminer.high_level import extract_text
 from PIL import Image
 from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -180,37 +180,44 @@ def displayPDF(file):
     # pdf_display = components.iframe(f"data:application/pdf;base64,{base64_pdf}", scrolling=True)
 
 
-@st.cache
-def getAnswer(uploaded_files):
-    pre_list = []
-    for file in files:
-        text = extract_text(file, codec='utf-8').replace('\xa0', ' ')
-        answer_key = text.split('Answer Key')[1]
-        matches = re.findall(r'\d+\.\s[A-E|a-e]', answer_key)
-        column = []
-        for answer in matches:
-            column.append(answer[-1])
-        pre_list.append(column)
-    answer_list = list(zip(*pre_list))
-    return answer_list
-
-
 def get_pdf_page_count(file):
     reader = PdfFileReader(BytesIO(file.getvalue()), "rb")
     return reader.getNumPages()
 
 
-def get_original_question(file):
-    pages = get_pdf_page_count(file)
+@st.cache
+def getAnswer(uploaded_files):
+    pre_list = []
+    for file in files:
+        page_num = get_pdf_page_count(file)
+        text = extract_text(file,page_numbers=[page_num-2], codec='utf-8').replace('\xa0', ' ')
+        answer_key = text.split('Answer Key')[1]
+        matches = re.findall(r'\d+\.\s[A-E|a-e]', answer_key)
+        column = [answer[-1] for answer in matches]
+        pre_list.append(column)
+    answer_list = list(zip(*pre_list))
+    return answer_list
+
+
+def get_original_question(file, question_num):
+    page_num = get_pdf_page_count(file)
     ver = re.findall("Ver_(\d)", file.name)
-    raw_df = tabula.read_pdf(BytesIO(file.getvalue()), pages=pages, pandas_options={
-                          'header': None})
-    raw_df[0].dropna(inplace=True)
-    df = raw_df[0]
-    df.rename(columns={df.columns[0]: "question",
-              df.columns[1]: str(ver[0])}, inplace=True)
-    df.set_index('question', inplace=True)
-    df = df.astype('str')
+    # raw_df = tabula.read_pdf(BytesIO(file.getvalue()), pages=page_num, pandas_options={
+    #                       'header': None})
+    # raw_df[0].dropna(inplace=True)
+    # df = raw_df[0]
+    text = extract_text(file,page_numbers=[page_num-1],codec='utf-8').replace('\xa0',' ')
+    num = [str(x) for x in range(1, question_num+1)]
+    pattern = "(\d{1,2})".join(num)+"(\d{1,2})"
+    result = re.findall(pattern, text)
+    print("------------------")
+    print("result number:", len(result))
+    print("------------------")
+    df = pd.DataFrame(result[0])
+    df.rename(columns={df.columns[0]: str(ver[0])}, inplace=True)
+    # df.set_index('question', inplace=True)
+    df.index +=1
+    # df = df.astype('str')
     return df
 
 
@@ -454,14 +461,15 @@ if choice == "匯整正確答案":
             answer_df = pd.DataFrame(getAnswer(files))
             answer_df.index += 1
             answer_df.columns += 1
+            question_num = len(answer_df)
             #scramble map generation
             if len(uploaded_files) == 1:
-                map_df =get_original_question(uploaded_files[0])
+                map_df =get_original_question(uploaded_files[0], question_num)
             else:
                 df_list = []
                 # map_df = pd.DataFrame({"question": range(1, 51)})
                 for file in files:
-                    df = get_original_question(file)
+                    df = get_original_question(file, question_num)
                     df_list.append(df)
                 map_df=pd.concat(df_list, axis=1)
                 # map_df.set_index("question", inplace=True)
