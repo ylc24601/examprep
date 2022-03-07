@@ -210,17 +210,17 @@ def get_original_question(file, question_num):
     # print(text)
     number_text = re.findall("#\d+", text)
     string = number_text[0]
-    
+
     left_num = [str(x) for x in range(1,question_num+1)]
     match_list = []
     # print("string:", string)
     for i in range(question_num, 0, -1):
-        
+
         pattern = f"({i})" + "(?=(\d{1,2}))"
         matches = re.findall(pattern, string[-4:])
         # print("matches:", matches)
         if len(matches) == 1:
-            match = matches[0]     
+            match = matches[0]
             left_num.remove(match[1])
             # print(left_num)
             match_list.insert(0, match[1])
@@ -235,7 +235,7 @@ def get_original_question(file, question_num):
                     match_list.insert(0, match[1])
                     # print(match)
                     matched_len = len(match[0])+len(match[1])
-        
+
         # print("matches_len: ", matched_len)
         string=string[:-matched_len]
         # print("----end loop----")
@@ -348,6 +348,9 @@ if choice == "試場座位":
             label='下載範例檔',
             data=roll_template_xls,
             file_name="roll_list.xlsx")
+        st.write("---")
+        image = Image.open("seat_map.png")
+        st.image(image, caption="Master Table上之致德堂座位區塊標示")
     else:
         roll_list = pd.read_excel(uploaded_file)
         final_output = master_table(roll_list, SEAT, version)
@@ -365,6 +368,7 @@ if choice == "試場座位":
             PDFbyte = pdf_file.read()
         st.download_button('Download PDF', data=PDFbyte,
                            file_name="announce_table.pdf", mime="application/octet-stream")
+
 if choice == "答案卡":
     st.sidebar.subheader("1. 輸入考試名稱")
     as_title = st.sidebar.text_input('印於答案卡之標題', "Biochem-1")
@@ -521,7 +525,7 @@ if choice == "成績計算":
     # Parameter Setting
     st.subheader("參數設定")
     col1, col2, col3 = st.columns(3)
-    
+
     qnum = col1.number_input(label="題數", value=50)
     point = col2.number_input(label="每題分數", value=2.0)
     col3.metric(label="總分", value = qnum * point)
@@ -537,7 +541,7 @@ if choice == "成績計算":
         "Upload txt file", accept_multiple_files=False, key=4)
     st.sidebar.subheader("上傳正確答案")
     correct_answers = st.sidebar.file_uploader("檔案格式: xlsx", key=5)
-    
+
     if uploaded_mt is not None:
         df = pd.read_excel(uploaded_mt, index_col=0)
         version_num = df["Version"].nunique()
