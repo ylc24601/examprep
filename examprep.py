@@ -594,7 +594,7 @@ if choice == "成績計算":
         if len(df) != len(st_ans_df):
             st.warning("注意! 作答人數與讀卡人數不符")
 
-        if st.button(label="Caculate"):
+        if st.button(label="Calculate"):
             if not from_cognero:
                 scramble_map = None
             results = grade_cal(st_ans_df, df, ca_df, from_cognero,
