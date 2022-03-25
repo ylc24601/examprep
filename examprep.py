@@ -2,12 +2,11 @@ import base64
 import re
 import shutil
 from io import BytesIO, StringIO
-# import regex
 import numpy as np
 import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
-import tabula
+import pdfplumber
 from pdfminer.high_level import extract_text
 from PIL import Image
 from PyPDF2 import PdfFileReader, PdfFileWriter
@@ -18,7 +17,6 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
-
 from batch_fill_AS import batchFillAS
 
 # ------------------------------------------
@@ -202,66 +200,13 @@ def getAnswer(uploaded_files):
 def get_original_question(file, question_num):
     page_num = get_pdf_page_count(file)
     ver = re.findall("Ver_(\d)", file.name)
-    raw_df = tabula.read_pdf(BytesIO(file.getvalue()), pages=page_num, pandas_options={
-                          'header': None})
-    # raw_df[0].dropna(inplace=True)
-    df = raw_df[0]
-    #---------Solve this problem by this block of code using regex, but lots of problems------
-    # text = extract_text(file,page_numbers=[page_num-1],codec='utf-8').replace('\xa0',' ')
-    # # print(text)
-    # number_text = re.findall("#\d+", text)
-    # string = number_text[0]
-
-    # left_num = [str(x) for x in range(1,question_num+1)]
-    # match_list = []
-    # # print("string:", string)
-    # for i in range(question_num, 0, -1):
-
-    #     pattern = f"(?r)({i})" + "(?=(\d{1,2}))"
-    #     matches = regex.findall(pattern, string[-4:])
-    #     # print("matches:", matches)
-    #     if len(matches) == 1:
-    #         match = matches[0]
-    #         left_num.remove(match[1])
-    #         # print(left_num)
-    #         match_list.insert(0, match[1])
-    #         matched_len = len(match[0])+len(match[1])
-    #     else:
-    #         # print("matches: ", matches)
-    #         for match in reversed(matches):
-    #                 if match[1] in left_num:
-    #                     if i != 1:
-    #                         print("match: ", match)
-    #                         matched_len = len(match[0])+len(match[1])
-    #                         next_string = string[:-matched_len]
-    #                         print("next string: ", next_string)
-    #                         pattern = f"({i-1})" + "(?=(\d{1,2}))"
-    #                         check_matches = re.findall(pattern, next_string[-4:])
-    #                         print("check_match: ", check_matches)
-    #                         if check_matches[0][1] not in left_num:
-    #                             pass
-    #                         else:            
-    #                             left_num.remove(match[1])
-    #                             match_list.insert(0, match[1])
-    #                             matched_len = len(match[0])+len(match[1])
-    #                             break
-    #                     else:            
-    #                         left_num.remove(match[1])
-    #                         match_list.insert(0, match[1])
-    #                         matched_len = len(match[0])+len(match[1])
-    #                         break
-    #     # print("matches_len: ", matched_len)
-    #     string=string[:-matched_len]
-    #     # print("----end loop----")
-    #     # print("string:", string)
-    # # num = [str(x) for x in range(1, question_num+1)]
-    # # pattern = "(\d{1,2})".join(num)+"(\d{1,2})"
-    # # result = re.findall(pattern, text)
-    # df = pd.DataFrame(match_list)
-    # ----end block tesing code-----
+    pdf = pdfplumber.open(BytesIO(file.getvalue()))
+    page = pdf.pages[page_num-1]
+    string = page.extract_text()
+    matches = re.findall("\\n(\d{1,2})\s(\d{1,2})", string)
+    df = pd.DataFrame(matches)
     df.rename(columns={df.columns[0]: "question", df.columns[1]: str(ver[0])}, inplace=True)
     df.set_index('question', inplace=True)
-    df = df.astype('int64')
     return df
 
 
