@@ -227,7 +227,7 @@ def get_original_question(file, question_num):
             matched_len = len(match[0])+len(match[1])
         else:
             # print("matches: ", matches)
-            for match in matches:
+            for match in reversed(matches):
                 if match[1] in left_num:
                     # print("match: ", match)
                     left_num.remove(match[1])
@@ -235,7 +235,7 @@ def get_original_question(file, question_num):
                     match_list.insert(0, match[1])
                     # print(match)
                     matched_len = len(match[0])+len(match[1])
-
+                    break
         # print("matches_len: ", matched_len)
         string=string[:-matched_len]
         # print("----end loop----")
