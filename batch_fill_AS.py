@@ -50,5 +50,5 @@ def batchFillAS(df_seat, filename, course_name, ID_left, ID_right, ID_top, ID_bo
     answer_sheet.save()
 
 
-if __name__ == '__main__':
-    batchFillAS(df, FILENAME, COURSE_NAME, ID_LEFT_MARGIN, ID_TOP_MARGIN, ID_TOP_MARGIN, ID_BOTTOM_MARGIN)
+# if __name__ == '__main__':
+#     batchFillAS(df, FILENAME, COURSE_NAME, ID_LEFT_MARGIN, ID_TOP_MARGIN, ID_TOP_MARGIN, ID_BOTTOM_MARGIN)
