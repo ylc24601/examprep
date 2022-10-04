@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from io import StringIO
-from examprep import into_excel
+from master_table import into_excel
 
 
 def answer_dataframe(file, question_num):
