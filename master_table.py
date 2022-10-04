@@ -108,6 +108,7 @@ def into_excel(index_output=True, **kwargs):
         writer = pd.ExcelWriter(output, engine='xlsxwriter')
         for sheet_name, df in kwargs.items():
             df.to_excel(writer, index=index_output, sheet_name=sheet_name)
+        writer.close()
         processed_data = output.getvalue()
         return processed_data
     

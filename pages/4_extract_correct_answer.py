@@ -5,16 +5,8 @@ import pdfplumber
 from pdfminer.high_level import extract_text
 from PyPDF2 import PdfFileReader
 import re
+from master_table import into_excel
 
-
-def into_excel(index_output=True, **kwargs):
-    if kwargs is not None:
-        output = BytesIO()
-        writer = pd.ExcelWriter(output, engine='xlsxwriter')
-        for sheet_name, df in kwargs.items():
-            df.to_excel(writer, index=index_output, sheet_name=sheet_name)
-        processed_data = output.getvalue()
-        return processed_data
 
 def get_pdf_page_count(file):
     reader = PdfFileReader(BytesIO(file.getvalue()), "rb")
