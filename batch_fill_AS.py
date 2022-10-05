@@ -34,11 +34,11 @@ def batchFillAS(df_seat, filename, course_name, ID_left, ID_right, ID_top, ID_bo
     # loop through each student in data_array from df
     for ID, Name, Class, Seat_index, Seat, Version in df_seat_array:
         answer_sheet.setFont('Microsoft Jhenghei', 10)
-        answer_sheet.drawString(23*mm, 198*mm, ID)
-        answer_sheet.drawString(120*mm, 197*mm, Name)
-        answer_sheet.drawString(90*mm, 197*mm, Class)
-        answer_sheet.drawString(85*mm, 191*mm, course)
-        answer_sheet.drawString(112*mm, 191*mm, f'座位：{Seat}')
+        answer_sheet.drawString(23*mm, 194*mm, ID)
+        answer_sheet.drawString(120*mm, 193*mm, Name)
+        answer_sheet.drawString(90*mm, 193*mm, Class)
+        answer_sheet.drawString(85*mm, 188*mm, course)
+        answer_sheet.drawString(112*mm, 188*mm, f'座位：{Seat}')
         # for ID filling
         x = np.linspace(ID_left, ID_right, 10)
         y = np.linspace(ID_top, ID_bottom, 9)
