@@ -43,7 +43,7 @@ def batchFillAS(df_seat, filename, course_name, ID_left, ID_right, ID_top, ID_bo
         x = np.linspace(ID_left, ID_right, 10)
         y = np.linspace(ID_top, ID_bottom, 9)
         for index, num in enumerate(ID):
-            answer_sheet.rect(x[int(num)]*mm, y[index]*mm, 3 * mm, 1 * mm, stroke=1, fill=1)
+            answer_sheet.rect(x[int(num)]*mm, y[index]*mm, 3.2 * mm, 1 * mm, stroke=1, fill=1)
 
         # finish editing and save this page
         answer_sheet.showPage()
