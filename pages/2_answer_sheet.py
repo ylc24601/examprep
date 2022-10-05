@@ -7,10 +7,10 @@ as_title = st.sidebar.text_input('印於答案卡之標題', "Biochem-1")
 st.sidebar.subheader("2. 上傳 masterTable.xlsx")
 uploaded_mt = st.sidebar.file_uploader("檔案格式: xlsx", key=2)
 st.sidebar.subheader("3.設定學號列印位置，單位 mm")
-ID_left = st.sidebar.number_input("答案卡左側邊緣至學號左邊界(0)之距離: ", 20.45)
-ID_right = st.sidebar.number_input("答案卡左側邊緣至學號右邊界(9)之距離: ", 60.47)
-ID_top = st.sidebar.number_input("答案卡下緣至學號上邊界之距離: ", 192.58)
-ID_bottom = st.sidebar.number_input("答案卡下緣至學號下邊界之距離:: ", 151.05)
+ID_left = st.sidebar.number_input("答案卡左側邊緣至學號左邊界(0)之距離: ", value=20.45)
+ID_right = st.sidebar.number_input("答案卡左側邊緣至學號右邊界(9)之距離: ", value=60.47)
+ID_top = st.sidebar.number_input("答案卡下緣至學號上邊界之距離: ", value=192.58)
+ID_bottom = st.sidebar.number_input("答案卡下緣至學號下邊界之距離:: ", value=151.05)
 if uploaded_mt is None:
     '''
     ### 目的：自動依 Master Table 將學號與座位列印於答案卡上
