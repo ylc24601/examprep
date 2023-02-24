@@ -18,7 +18,7 @@ pdfmetrics.registerFont(TTFont('Microsoft Jhenghei', 'Microsoft Jhenghei.ttf'))
 width, height = A4
 
 
-@st.cache
+@st.cache_data
 def master_table(dataframe, seat, ver_num):
     dataframe['ID'] = dataframe['ID'].apply(str)
     seat.index.name = 'Seat_index'
@@ -33,7 +33,7 @@ def master_table(dataframe, seat, ver_num):
     # Dataframe for Seat Announcement
 
 
-@st.cache
+
 def df2list(df):
     seat_annou = df[['ID', 'Name', 'Seat']]
     seat_annou.index += 1

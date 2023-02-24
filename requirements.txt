@@ -1,6 +1,6 @@
 pandas==1.4.4
 reportlab==3.5.67
-streamlit==1.13.0
+streamlit==1.19.0
 openpyxl==3.0.10
 xlsxwriter==3.0.3
 PyPDF2==2.10.5
