@@ -3,7 +3,7 @@ import streamlit as st
 from io import StringIO
 from master_table import into_excel
 
-
+@st.cache_data
 def answer_dataframe(file, question_num):
     data = StringIO(student_answer_file.read().decode("utf-8"))
     as_list = [[line[7:16], line[16:question_num+16]] for line in data.readlines()]
@@ -58,7 +58,7 @@ def grade_cal(st_ans, mt, correct_answer, from_cognero=True, qnum=50, point=2, s
     return results, detail
 
 
-@st.cache
+@st.cache_data
 def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
     return df.to_csv().encode('utf-8')
