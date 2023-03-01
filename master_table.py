@@ -131,7 +131,7 @@ version = st.sidebar.slider("考卷版本", 1, 10, 5)
 st.sidebar.subheader("3. 上傳學生名冊")
 uploaded_file = st.sidebar.file_uploader("檔案格式: xlsx", key=1)
 if uploaded_file is None:
-    roll_template = pd.read_excel("roll_list.xlsx")
+    roll_template = pd.read_excel("roll_list.xlsx", dtype=str)
     st.subheader("學生名冊範例格式")
     # CSS to inject contained in a string
     hide_dataframe_row_index = """

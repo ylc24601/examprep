@@ -13,7 +13,7 @@ def get_pdf_page_count(file):
     return reader.getNumPages()
 
 
-@st.cache
+@st.cache_data
 def getAnswer(uploaded_files):
     pre_list = []
     for file in files:
