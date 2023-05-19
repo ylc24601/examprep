@@ -68,7 +68,8 @@ if uploaded_files or uploaded_mt is None:
     '''
     ### 目的：將學號與座位列印於對應版本之題目卷
     #### 老師使用Macmillian出題注意事項
-    Edit → Styles → Answer choice styles 改為 A)
+    1. Edit → Styles → Answer choice styles 改為 A)
+    2. File → Page Setup → Page Size 確認是否為A4
     #### 說明：
     試卷檔名格式請依照 ...Ver_1.pdf
 
