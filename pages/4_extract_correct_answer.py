@@ -3,14 +3,14 @@ import pandas as pd
 import streamlit as st
 import pdfplumber
 from pdfminer.high_level import extract_text
-from PyPDF2 import PdfFileReader
+from PyPDF2 import PdfReader
 import re
 from master_table import into_excel
 
 
 def get_pdf_page_count(file):
-    reader = PdfFileReader(BytesIO(file.getvalue()), "rb")
-    return reader.getNumPages()
+    reader = PdfReader(BytesIO(file.getvalue()), "rb")
+    return len(reader.pages)
 
 
 @st.cache_data
@@ -70,6 +70,8 @@ if len(uploaded_files) != 0:
         col2.subheader("Scramble Map")
         col2.dataframe(map_df)
         st.write("下載前請檢查試卷版本與答案是否相符")
+        st.write('如有送分題，可在Excel中全選答案儲存格後以conditional formatting加入公式')
+        st.write('`=ROW()=MATCH("36",map!B:B,0)`，其中36是範例原始題號')
         # st.write(unique_df)
         answer_xls = into_excel(answers=answer_df, map=map_df)
         excel_clicked = st.download_button(
