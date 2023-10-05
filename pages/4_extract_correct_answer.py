@@ -72,6 +72,7 @@ if len(uploaded_files) != 0:
         st.write("下載前請檢查試卷版本與答案是否相符")
         st.write('如有送分題，可在Excel中全選答案儲存格後以conditional formatting加入公式')
         st.write('`=ROW()=MATCH("36",map!B:B,0)`，其中36是範例原始題號')
+        st.write('將要送分的答案改為ABCDE')
         # st.write(unique_df)
         answer_xls = into_excel(answers=answer_df, map=map_df)
         excel_clicked = st.download_button(

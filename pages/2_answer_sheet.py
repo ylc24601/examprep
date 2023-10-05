@@ -13,10 +13,10 @@ ID_top = st.sidebar.number_input("答案卡下緣至學號上邊界之距離: ",
 ID_bottom = st.sidebar.number_input("答案卡下緣至學號下邊界之距離:: ", value=151.05)
 if uploaded_mt is None:
     '''
-    ### 目的：自動依 Master Table 將學號與座位列印於答案卡上
-    建議在固定的印表機列印，紙張設定須改為 **A5**
-
-    先列印一張，調整參數確認無誤後再印出全部
+    ### 自動依 Master Table 將學號與座位列印於答案卡上
+    1. 建議在固定的印表機列印，紙張設定須改為 **A5**
+    2. 確認列印選項中的縮放比例無調整(100%)
+    3. 先列印一張，調整參數確認無誤後再印出全部
     '''
 else:
     df_seat = pd.read_excel(uploaded_mt, index_col=0)
