@@ -121,7 +121,7 @@ title = st.sidebar.text_input(
 
 st.sidebar.subheader("2. 選擇試場座位與試卷版本")
 seat_choice = st.sidebar.radio(
-    "座位安排", ('致德堂306人(坐二排空一排)', '致德堂249人(坐一排空一排)'))
+    "座位安排", ('致德堂249人(坐一排空一排)', '致德堂306人(坐二排空一排)' ))
 if seat_choice == "致德堂306人(坐二排空一排)":
     SEAT = pd.read_excel("seat_306.xlsx", header=None, names=['Seat'])
 else:
