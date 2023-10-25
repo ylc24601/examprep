@@ -132,7 +132,7 @@ st.title("Examination Workflow")
 st.markdown("### 目的：製作Master Table與試場座位表")
 st.sidebar.subheader("1. 請輸入考試名稱")
 title = st.sidebar.text_input(
-    '顯示於座位公告表之標題', "Biochemistry 1st Exam Seating Table")
+    '顯示於座位公告表之標題')
 
 st.sidebar.subheader("2. 選擇試場座位與試卷版本")
 seat_choice = st.sidebar.radio(
@@ -172,15 +172,17 @@ else:
     final_output = master_table(roll_list, SEAT, version)
     st.dataframe(final_output)
     mt = into_excel(masterTable=final_output)
-    makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
-
-    st.write("此Excel檔將用於整個試務流程之重要檔案，請妥善保存!")
-    st.download_button(
-        label='Download Master Table',
-        data=mt,
-        file_name="masterTable.xlsx")
-    st.write("以下【座位表】印出後，張貼至少三份於試場外")
-    with open('announce_table.pdf', 'rb') as pdf_file:
-        PDFbyte = pdf_file.read()
-    st.download_button('Download PDF', data=PDFbyte,
-                        file_name="announce_table.pdf", mime="application/octet-stream")
+    if title == "":
+        st.warning("記得輸入考試標題")
+    else:
+        makeAnnouTable(columnize(df2list(final_output), 41, 2, heading=1))
+        st.write("此Excel檔將用於整個試務流程之重要檔案，請妥善保存!")
+        st.download_button(
+            label='Download Master Table',
+            data=mt,
+            file_name="masterTable.xlsx")
+        st.write("以下【座位表】印出後，張貼至少三份於試場外")
+        with open('announce_table.pdf', 'rb') as pdf_file:
+            PDFbyte = pdf_file.read()
+        st.download_button('Download PDF', data=PDFbyte,
+                            file_name="announce_table.pdf", mime="application/octet-stream")
