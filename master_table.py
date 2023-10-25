@@ -18,9 +18,24 @@ pdfmetrics.registerFont(TTFont('Microsoft Jhenghei', 'Microsoft Jhenghei.ttf'))
 width, height = A4
 
 
+def ID_class_conversion(id):
+    school = {"1":"M", "2":"D", "3":"P"}
+    school_num = id[4:5]    
+    left3 = id[0:3]
+    left3 = int(left3)
+    if school_num == "1":
+        reg_class = left3 - 289
+    if school_num == "2":
+        reg_class = left3 - 330
+    if school_num == "3":
+        reg_class = left3 - 302
+    return school[school_num] + str(reg_class)
+    
+
 @st.cache_data
 def master_table(dataframe, seat, ver_num):
     dataframe['ID'] = dataframe['ID'].apply(str)
+    dataframe['Class'] = dataframe['ID'].apply(ID_class_conversion)
     seat.index.name = 'Seat_index'
     seat.reset_index(inplace=True)
     # Generate test sheet version
