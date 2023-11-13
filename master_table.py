@@ -19,7 +19,7 @@ width, height = A4
 
 
 def ID_class_conversion(id):
-    school = {"1":"M", "2":"D", "3":"P"}
+    school = {"1":"M", "2":"D", "3":"P", "4":"N", "5": "PH"}
     school_num = id[4:5]    
     left3 = id[0:3]
     left3 = int(left3)
@@ -29,10 +29,14 @@ def ID_class_conversion(id):
         reg_class = left3 - 330
     if school_num == "3":
         reg_class = left3 - 302
+    if school_num == "4":
+        reg_class = left3 - 336
+    if school_num == "5":
+        reg_class = left3 - 368   
     return school[school_num] + str(reg_class)
     
 
-@st.cache_data
+# @st.cache_data
 def master_table(dataframe, seat, ver_num):
     dataframe['ID'] = dataframe['ID'].apply(str)
     dataframe['Class'] = dataframe['ID'].apply(ID_class_conversion)
