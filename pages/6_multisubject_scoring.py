@@ -71,7 +71,7 @@ def grade_weighted(st_ans_df, mt_df, ca_df, w_bio, w_mol, bio_idx, mol_idx, from
     correctness_df['Percent'] = (correctness_df['Correct_Num']*100/len(result_df)).round(1)
     return result_df, detail_df, correctness_df
 
-st.title("Biochem & MolBio Weighted Scoring (雙科加權成績計算)")
+st.title("雙科成績計算")
 
 st.subheader("題數與配分設定")
 # 使用者可自訂科目名稱（預設為生物化學、分子生物學）
