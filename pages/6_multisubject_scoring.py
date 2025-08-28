@@ -202,5 +202,5 @@ if st.button("開始計分 / Analyze"):
         )
         csv_total = result_df.to_csv(index=False).encode('utf-8')
         col1, col2 = st.columns(2)
-        col1.download_button(label='Download Excel (Score + Detail + Item stats)', data=score_xls, file_name='WeightedScore.xlsx')
-        col2.download_button(label='Download CSV (Scores)', data=csv_total, file_name='weighted_score.csv', mime='text/csv')
+        col1.download_button(label='Download Excel (Score + Detail + Item stats)', data=score_xls, file_name='score.xlsx')
+        col2.download_button(label='Download CSV (Scores)', data=csv_total, file_name='score.csv', mime='text/csv')
