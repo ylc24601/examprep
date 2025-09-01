@@ -36,7 +36,6 @@ def ID_class_conversion(id):
     return school[school_num] + str(reg_class)
     
 
-@st.cache_data
 def master_table(dataframe, seat, ver_num):
     dataframe['ID'] = dataframe['ID'].apply(str)
     dataframe['Class'] = dataframe['ID'].apply(ID_class_conversion)
