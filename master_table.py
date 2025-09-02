@@ -35,8 +35,8 @@ def ID_class_conversion(id):
         reg_class = left3 - 368   
     return school[school_num] + str(reg_class)
     
-
-def master_table(dataframe, seat, ver_num):
+@st.cache_data
+def master_table(dataframe, seat, ver_num, nonce:int):
     dataframe['ID'] = dataframe['ID'].apply(str)
     dataframe['Class'] = dataframe['ID'].apply(ID_class_conversion)
     seat.index.name = 'Seat_index'
@@ -130,6 +130,9 @@ def into_excel(index_output=True, **kwargs):
         processed_data = output.getvalue()
         return processed_data
     
+if 'shuffle_nonce' not in st.session_state:
+    st.session_state.shuffle_nonce = 0
+    
 
 st.title("Examination Workflow")
 st.markdown("### 目的：製作Master Table與試場座位表")
@@ -144,6 +147,8 @@ if seat_choice == "致德堂306人(坐二排空一排)":
     SEAT = pd.read_excel("seat_306.xlsx", header=None, names=['Seat'])
 else:
     SEAT = pd.read_excel("seat_249.xlsx", header=None, names=['Seat'])
+
+st.sidebar.button("座位重新洗牌", on_click=lambda: st.session_state.__setitem__('shuffle_nonce', st.session_state.shuffle_nonce + 1))
 
 version = st.sidebar.slider("考卷版本", 1, 10, 5)
 st.sidebar.subheader("3. 上傳學生名冊")
@@ -172,7 +177,7 @@ if uploaded_file is None:
     st.image(image, caption="Master Table上之致德堂座位區塊標示")
 else:
     roll_list = pd.read_excel(uploaded_file)
-    final_output = master_table(roll_list, SEAT, version)
+    final_output = master_table(roll_list, SEAT, version, st.session_state.shuffle_nonce)
     st.dataframe(final_output)
     mt = into_excel(masterTable=final_output)
     if title == "":
