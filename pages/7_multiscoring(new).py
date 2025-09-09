@@ -3,9 +3,6 @@ import streamlit as st
 from io import StringIO
 from master_table import into_excel
 import matplotlib.pyplot as plt
-import mplfonts
-mplfonts.use_font("Noto Sans TC")  # 第一次會下載，之後沿用快取
-plt.rcParams["axes.unicode_minus"] = False
 
 # =============================
 # Utilities
@@ -116,8 +113,8 @@ st.title("多科加權成績計算")
 st.subheader("題數與配分設定")
 if 'subjects_df' not in st.session_state:
     st.session_state.subjects_df = pd.DataFrame([
-        {"name": "生物化學", "count": 10, "weight": 10.0, "color": "#e0f7fa"},
-        {"name": "分子生物學", "count": 5,  "weight": 20.0, "color": "#fce4ec"},
+        {"name": "Biochem", "count": 10, "weight": 10.0, "color": "#e0f7fa"},
+        {"name": "MolBio", "count": 5,  "weight": 20.0, "color": "#fce4ec"},
     ])
 
 subjects_df = st.data_editor(
@@ -393,22 +390,45 @@ if st.button("開始計分 / Analyze"):
             for col in score_cols_charts:
                 fig, ax = plt.subplots()
                 ax.hist(result_df[col].dropna(), bins=10, edgecolor='black')
-                ax.set_title(f"{col} 分布")
-                ax.set_xlabel("分數"); ax.set_ylabel("學生人數")
+                ax.set_title(f"{col.replace('_', ' ')} Distribution")
+                ax.set_xlabel("Score")
+                ax.set_ylabel("Student Count")
                 st.pyplot(fig)
-
-            # 2) 各科平均分數比較
-            st.subheader("各科平均分數比較")
+            
+            # 2) Average score comparison (Matplotlib)
+            st.subheader("各科平均")
             avg_scores = result_df[score_cols_charts].mean()
-            st.bar_chart(avg_scores)
+
+            fig, ax = plt.subplots(figsize=(3.2, 4))
+            names = [c.replace('_', ' ') for c in avg_scores.index]
+            values = avg_scores.values
+
+            bars = ax.bar(names, values, edgecolor='black')
+            ax.set_title("Average Scores by Subject")
+            ax.set_xlabel("Subject")
+            ax.set_ylabel("Average Score")
+            ax.set_ylim(0, 100)
+            # 在長條上方顯示數值
+            for b in bars:
+                h = b.get_height()
+                ax.annotate(f"{h:.1f}", xy=(b.get_x() + b.get_width()/2, h),
+                            xytext=(0, 3), textcoords="offset points",
+                            ha='center', va='bottom')
+
+            # 若科目太多，旋轉標籤以免重疊
+            if len(names) > 6:
+                plt.setp(ax.get_xticklabels(), rotation=30, ha='right')
+
+            ax.grid(axis='y', linestyle=':', alpha=0.5)
+            st.pyplot(fig)
 
             # 3) 難度 (p 值) 分布
             st.subheader("各題難度 (p 值)")
             fig, ax = plt.subplots()
             ax.bar(correctness_full.index, correctness_full['難度p'])
-            ax.axhline(0.4, color='tab:orange', linestyle='--', linewidth=2, label='理想下限 0.4')
-            ax.axhline(0.6, color='tab:green',  linestyle='--', linewidth=2, label='理想上限 0.6')
-            ax.set_xlabel("題號"); ax.set_ylabel("難度 p")
+            ax.axhline(0.4, color='tab:orange', linestyle='--', linewidth=2, label='Ideal lower bound (0.4)')
+            ax.axhline(0.6, color='tab:green',  linestyle='--', linewidth=2, label='Ideal upper bound (0.6)')
+            ax.set_xlabel("Question"); ax.set_ylabel("Difficulty p")
             ax.legend()
             st.pyplot(fig)
 
@@ -416,9 +436,9 @@ if st.button("開始計分 / Analyze"):
             st.subheader("各題鑑別度 (D 值)")
             fig, ax = plt.subplots()
             ax.bar(correctness_full.index, correctness_full['鑑別度D'])
-            ax.axhline(0.3, color='tab:orange', linestyle='--', label='最低建議 0.3')
-            ax.axhline(0.4, color='tab:green', linestyle='--', label='理想值 >0.4')
-            ax.set_xlabel("題號"); ax.set_ylabel("鑑別度 D")
+            ax.axhline(0.3, color='tab:orange', linestyle='--', label='Recommended >= 0.3')
+            ax.axhline(0.4, color='tab:green',  linestyle='--', label='Ideal >= 0.4')
+            ax.set_xlabel("Question"); ax.set_ylabel("Discrimination D")
             ax.legend()
             st.pyplot(fig)
 
