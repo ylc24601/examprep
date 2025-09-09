@@ -3,35 +3,9 @@ import streamlit as st
 from io import StringIO
 from master_table import into_excel
 import matplotlib.pyplot as plt
-import matplotlib
-import platform
-
-# 通用中文字體自動設定
-try:
-    zh_fonts = {
-        "Windows": ["Microsoft JhengHei", "SimHei"],
-        "Darwin":  ["PingFang TC", "Heiti TC", "Hiragino Sans GB"],  # macOS
-        "Linux":   ["Noto Sans CJK TC", "WenQuanYi Micro Hei", "AR PL UMing CN"],
-    }
-    system = platform.system()
-    fm = matplotlib.font_manager
-    available = set()
-    for ext in ('ttf','ttc','otf'):
-        for fp in fm.findSystemFonts(fontext=ext):
-            try:
-                available.add(fm.FontProperties(fname=fp).get_name())
-            except Exception:
-                pass
-    for font in zh_fonts.get(system, []):
-        if font in available:
-            plt.rcParams['font.sans-serif'] = [font]
-            break
-    else:
-        plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
-    plt.rcParams['axes.unicode_minus'] = False
-except Exception:
-    plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
-    plt.rcParams['axes.unicode_minus'] = False
+import mplfonts
+mplfonts.use_font("Noto Sans TC")  # 第一次會下載，之後沿用快取
+plt.rcParams["axes.unicode_minus"] = False
 
 # =============================
 # Utilities
