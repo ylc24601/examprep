@@ -178,11 +178,6 @@ for i, (idx, row) in enumerate(edited.iterrows()):
             key=f"color_picker_{idx}",
             label_visibility="collapsed"
         )
-    with c3:
-        st.markdown(
-            f'<div style="height:28px;border:1px solid #ddd;background:{picked};"></div>',
-            unsafe_allow_html=True
-        )
     edited.at[idx, "color"] = picked
 
 # 存回 session_state，後續你的程式都用 st.session_state.subjects_df
@@ -204,10 +199,6 @@ totals = {s['name']: s['count']*s['weight'] for s in subjects_list}
 tot_cols = st.columns(min(4, max(2, len(subjects_list))))
 for i, (name, subtotal) in enumerate(totals.items()):
     tot_cols[i % len(tot_cols)].metric(f"{name}小計", subtotal)
-
-grand_total = sum(totals.values())
-if grand_total != 100:
-    st.warning("注意：總分不是100分！")
 
 st.write("---")
 
